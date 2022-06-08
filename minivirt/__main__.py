@@ -1,3 +1,4 @@
+import sys
 import logging
 import subprocess
 from pathlib import Path
@@ -156,7 +157,6 @@ def download_alpine():
 def start(name):
     image = Path(ALPINE_ISO_URL).name
     vm = VM(db, name)
-    import sys
     with daemon.DaemonContext(files_preserve=[sys.stderr], stderr=sys.stderr):
         print('foo', file=sys.stderr, flush=True)
         vm.start(image)
