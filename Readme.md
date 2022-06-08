@@ -13,5 +13,6 @@ python3 -m venv .venv
 ```shell
 ./minivirt.sh download-alpine
 ./minivirt.sh start foo
+./minivirt.sh console foo  # To exit the console, type ^].
 ./minivirt.sh kill foo
 ```

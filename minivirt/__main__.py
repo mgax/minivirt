@@ -1,4 +1,5 @@
 import sys
+import os
 import logging
 import subprocess
 from pathlib import Path
@@ -84,6 +85,7 @@ class VM:
         self.name = name
         self.vm_path = db.vm_path(name)
         self.qmp_path = self.vm_path / 'qmp'
+        self.serial_path = self.vm_path / 'serial'
 
     def connect_qmp(self):
         return QMP(self.qmp_path)
@@ -100,6 +102,7 @@ class VM:
                     '-cpu', 'cortex-a72',
                     '-smp', '4',
                     '-m', '4096',
+                    '-serial', f'unix:{self.serial_path},server=on,wait=off',
                     '-drive', (
                         f'if=pflash,format=raw,file={FIRMWARE},readonly=on'
                     ),
@@ -126,6 +129,16 @@ class VM:
     def cleanup(self):
         if self.vm_path.exists():
             shutil.rmtree(self.vm_path)
+
+    def console(self):
+        os.execvp(
+            'socat',
+            [
+                'socat',
+                'stdin,raw,echo=0,escape=0x1d',
+                f'unix-connect:{self.serial_path}',
+            ],
+        )
 
 
 db = DB()
@@ -167,6 +180,13 @@ def start(name):
 def kill(name):
     vm = VM(db, name)
     vm.kill()
+
+
+@cli.command()
+@click.argument('name')
+def console(name):
+    vm = VM(db, name)
+    vm.console()
 
 
 logging.basicConfig()
