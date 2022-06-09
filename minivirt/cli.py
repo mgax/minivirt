@@ -8,14 +8,14 @@ from .db import DB
 from .vms import ALPINE_ISO_URL, VM
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 db = DB()
 
 
 @click.group()
-def cli():
-    pass
+@click.option('-v', '--verbose', is_flag=True)
+def cli(verbose):
+    logging.basicConfig(level=logging.DEBUG if verbose else logging.WARNING)
 
 
 @cli.command()

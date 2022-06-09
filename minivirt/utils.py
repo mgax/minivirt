@@ -2,7 +2,6 @@ import logging
 from time import time, sleep
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 def waitfor(condition, timeout=10, poll_interval=0.1):

@@ -5,7 +5,6 @@ import json
 from .utils import waitfor
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class QMP:
