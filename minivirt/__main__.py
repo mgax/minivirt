@@ -93,7 +93,7 @@ class VM:
     def connect_qmp(self):
         return QMP(self.qmp_path)
 
-    def start(self, image, display=False, daemon=False):
+    def start(self, image, display=False, daemon=False, disk=None):
         logger.info('Starting %s ...', self.name)
 
         self.vm_path.mkdir(parents=True)
@@ -146,6 +146,15 @@ class VM:
             else:
                 qemu_cmd += [
                     '-nographic',
+                ]
+
+            if disk:
+                disk_path = self.vm_path / 'disk.qemu'
+                subprocess.check_call(
+                    ['qemu-img', 'create', '-f', 'qcow2', disk_path, disk]
+                )
+                qemu_cmd += [
+                    '-drive', f'if=virtio,file={disk_path}',
                 ]
 
             if daemon:
@@ -216,6 +225,7 @@ def download_alpine():
 @click.argument('name')
 @click.option('--display', default=False)
 @click.option('--daemon', default=False)
+@click.option('--disk', default=None)
 def start(name, **kwargs):
     image = Path(ALPINE_ISO_URL).name
     vm = VM(db, name)
