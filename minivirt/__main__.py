@@ -9,6 +9,7 @@ import json
 import shutil
 import random
 from textwrap import dedent
+from functools import cached_property
 
 import click
 from daemon import DaemonContext
@@ -82,22 +83,53 @@ class QMP:
 
 
 class VM:
+    @classmethod
+    def create(cls, db, name, image, disk):
+        vm = cls(db, name)
+        vm.vm_path.mkdir(parents=True)
+
+        config = dict(
+            image=image,
+            disk=disk,
+        )
+
+        with vm.config_path.open('w') as f:
+            json.dump(config, f, indent=2)
+
+        if disk:
+            subprocess.check_call(
+                ['qemu-img', 'create', '-f', 'qcow2', vm.disk_path, disk]
+            )
+
+        return vm
+
+    @classmethod
+    def open(cls, db, name):
+        return cls(db, name)
+
     def __init__(self, db, name):
         self.db = db
         self.name = name
         self.vm_path = db.vm_path(name)
+        self.config_path = self.vm_path / 'config.json'
         self.qmp_path = self.vm_path / 'qmp'
         self.serial_path = self.vm_path / 'serial'
         self.ssh_config_path = self.vm_path / 'ssh-config'
+        self.disk_path = self.vm_path / 'disk.qemu'
+
+    @cached_property
+    def config(self):
+        with self.config_path.open() as f:
+            return json.load(f)
 
     def connect_qmp(self):
         return QMP(self.qmp_path)
 
-    def start(self, image, display=False, daemon=False, disk=None):
+    def start(self, daemon=False, display=False):
         logger.info('Starting %s ...', self.name)
 
-        self.vm_path.mkdir(parents=True)
         ssh_port = random.randrange(20000, 32000)
+
         with self.ssh_config_path.open('w') as f:
             f.write(
                 dedent(
@@ -114,66 +146,55 @@ class VM:
 
         self.ssh_config_path.chmod(0o644)
 
-        try:
-            qemu_cmd = [
-                'qemu-system-aarch64',
-                '-qmp', f'unix:{self.qmp_path},server,nowait',
-                '-M', 'virt,highmem=off,accel=hvf',
-                '-cpu', 'cortex-a72',
-                '-smp', '4',
-                '-m', '4096',
-                '-drive', (
-                    f'if=pflash,format=raw,file={FIRMWARE},readonly=on'
-                ),
-                '-boot', 'menu=on,splash-time=0',
-                '-netdev', f'user,id=user,hostfwd=tcp::{ssh_port}-:22',
-                '-device', 'virtio-net-pci,netdev=user,romfile=',
-                '-cdrom', db.image_path(image),
+        qemu_cmd = [
+            'qemu-system-aarch64',
+            '-qmp', f'unix:{self.qmp_path},server,nowait',
+            '-M', 'virt,highmem=off,accel=hvf',
+            '-cpu', 'cortex-a72',
+            '-smp', '4',
+            '-m', '4096',
+            '-drive', (
+                f'if=pflash,format=raw,file={FIRMWARE},readonly=on'
+            ),
+            '-boot', 'menu=on,splash-time=0',
+            '-netdev', f'user,id=user,hostfwd=tcp::{ssh_port}-:22',
+            '-device', 'virtio-net-pci,netdev=user,romfile=',
+            '-cdrom', db.image_path(self.config['image']),
+        ]
+
+        if display:
+            qemu_cmd += [
+                '-device', 'virtio-gpu-pci',
+                '-display', 'default,show-cursor=on',
+                '-device', 'qemu-xhci',
+                '-device', 'usb-kbd',
+                '-device', 'usb-tablet',
             ]
 
-            if display:
-                assert not daemon, (
-                    '--daemon and --display are mutually exclusive'
-                )
-                qemu_cmd += [
-                    '-device', 'virtio-gpu-pci',
-                    '-display', 'default,show-cursor=on',
-                    '-device', 'qemu-xhci',
-                    '-device', 'usb-kbd',
-                    '-device', 'usb-tablet',
-                ]
+        else:
+            qemu_cmd += [
+                '-nographic',
+            ]
 
-            else:
-                qemu_cmd += [
-                    '-nographic',
-                ]
+        if self.config['disk']:
+            qemu_cmd += [
+                '-drive', f'if=virtio,file={self.disk_path}',
+            ]
 
-            if disk:
-                disk_path = self.vm_path / 'disk.qemu'
-                subprocess.check_call(
-                    ['qemu-img', 'create', '-f', 'qcow2', disk_path, disk]
-                )
-                qemu_cmd += [
-                    '-drive', f'if=virtio,file={disk_path}',
-                ]
-
-            if daemon:
-                qemu_cmd += [
-                    '-serial', f'unix:{self.serial_path},server=on,wait=off',
-                ]
-                with DaemonContext(
-                    files_preserve=[sys.stderr], stderr=sys.stderr
-                ):
-                    subprocess.check_call(qemu_cmd)
-
-            else:
-                qemu_cmd += [
-                    '-serial', 'mon:stdio',
-                ]
+        if daemon:
+            qemu_cmd += [
+                '-serial', f'unix:{self.serial_path},server=on,wait=off',
+            ]
+            with DaemonContext(
+                files_preserve=[sys.stderr], stderr=sys.stderr
+            ):
                 subprocess.check_call(qemu_cmd)
 
-        finally:
-            self.cleanup()
+        else:
+            qemu_cmd += [
+                '-serial', 'mon:stdio',
+            ]
+            subprocess.check_call(qemu_cmd)
 
     def kill(self):
         if self.qmp_path.exists():
@@ -223,26 +244,32 @@ def download_alpine():
 
 @cli.command()
 @click.argument('name')
-@click.option('--display', default=False)
-@click.option('--daemon', default=False)
 @click.option('--disk', default=None)
-def start(name, **kwargs):
+def create(name, **kwargs):
     image = Path(ALPINE_ISO_URL).name
-    vm = VM(db, name)
-    vm.start(image, **kwargs)
+    VM.create(db, name, image, **kwargs)
+
+
+@cli.command()
+@click.argument('name')
+@click.option('--daemon', is_flag=True)
+@click.option('--display', is_flag=True)
+def start(name, **kwargs):
+    vm = VM.open(db, name)
+    vm.start(**kwargs)
 
 
 @cli.command()
 @click.argument('name')
 def kill(name):
-    vm = VM(db, name)
+    vm = VM.open(db, name)
     vm.kill()
 
 
 @cli.command()
 @click.argument('name')
 def console(name):
-    vm = VM(db, name)
+    vm = VM.open(db, name)
     vm.console()
 
 
