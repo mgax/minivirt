@@ -246,5 +246,13 @@ def console(name):
     vm.console()
 
 
+@cli.command()
+def ls():
+    subprocess.check_call(
+        ['du', '-sh', *(p.name for p in db.path.glob('*'))],
+        cwd=db.path
+    )
+
+
 logging.basicConfig()
 cli()
