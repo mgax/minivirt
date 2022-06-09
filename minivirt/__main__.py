@@ -11,7 +11,7 @@ import random
 from textwrap import dedent
 
 import click
-import daemon
+from daemon import DaemonContext
 
 ALPINE_ISO_URL = (
     'https://dl-cdn.alpinelinux.org/alpine/v3.16/releases/aarch64/'
@@ -93,7 +93,7 @@ class VM:
     def connect_qmp(self):
         return QMP(self.qmp_path)
 
-    def start(self, image):
+    def start(self, image, display=False, daemon=False):
         logger.info('Starting %s ...', self.name)
 
         self.vm_path.mkdir(parents=True)
@@ -115,29 +115,53 @@ class VM:
         self.ssh_config_path.chmod(0o644)
 
         try:
-            subprocess.check_call(
-                [
-                    'qemu-system-aarch64',
-                    '-qmp', f'unix:{self.qmp_path},server,nowait',
-                    '-M', 'virt,highmem=off,accel=hvf',
-                    '-cpu', 'cortex-a72',
-                    '-smp', '4',
-                    '-m', '4096',
-                    '-serial', f'unix:{self.serial_path},server=on,wait=off',
-                    '-drive', (
-                        f'if=pflash,format=raw,file={FIRMWARE},readonly=on'
-                    ),
-                    '-boot', 'menu=on,splash-time=0',
-                    '-netdev', f'user,id=user,hostfwd=tcp::{ssh_port}-:22',
-                    '-device', 'virtio-net-pci,netdev=user,romfile=',
+            qemu_cmd = [
+                'qemu-system-aarch64',
+                '-qmp', f'unix:{self.qmp_path},server,nowait',
+                '-M', 'virt,highmem=off,accel=hvf',
+                '-cpu', 'cortex-a72',
+                '-smp', '4',
+                '-m', '4096',
+                '-drive', (
+                    f'if=pflash,format=raw,file={FIRMWARE},readonly=on'
+                ),
+                '-boot', 'menu=on,splash-time=0',
+                '-netdev', f'user,id=user,hostfwd=tcp::{ssh_port}-:22',
+                '-device', 'virtio-net-pci,netdev=user,romfile=',
+                '-cdrom', db.image_path(image),
+            ]
+
+            if display:
+                assert not daemon, (
+                    '--daemon and --display are mutually exclusive'
+                )
+                qemu_cmd += [
                     '-device', 'virtio-gpu-pci',
                     '-display', 'default,show-cursor=on',
                     '-device', 'qemu-xhci',
                     '-device', 'usb-kbd',
                     '-device', 'usb-tablet',
-                    '-cdrom', db.image_path(image),
                 ]
-            )
+
+            else:
+                qemu_cmd += [
+                    '-nographic',
+                ]
+
+            if daemon:
+                qemu_cmd += [
+                    '-serial', f'unix:{self.serial_path},server=on,wait=off',
+                ]
+                with DaemonContext(
+                    files_preserve=[sys.stderr], stderr=sys.stderr
+                ):
+                    subprocess.check_call(qemu_cmd)
+
+            else:
+                qemu_cmd += [
+                    '-serial', 'mon:stdio',
+                ]
+                subprocess.check_call(qemu_cmd)
 
         finally:
             self.cleanup()
@@ -190,12 +214,12 @@ def download_alpine():
 
 @cli.command()
 @click.argument('name')
-def start(name):
+@click.option('--display', default=False)
+@click.option('--daemon', default=False)
+def start(name, **kwargs):
     image = Path(ALPINE_ISO_URL).name
     vm = VM(db, name)
-    with daemon.DaemonContext(files_preserve=[sys.stderr], stderr=sys.stderr):
-        print('foo', file=sys.stderr, flush=True)
-        vm.start(image)
+    vm.start(image, **kwargs)
 
 
 @cli.command()
