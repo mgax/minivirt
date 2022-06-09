@@ -150,8 +150,7 @@ class VM:
             'qemu-system-aarch64',
             '-qmp', f'unix:{self.qmp_path},server,nowait',
             '-M', 'virt,highmem=off,accel=hvf',
-            '-cpu', 'cortex-a72',
-            '-smp', '4',
+            '-cpu', 'host',
             '-m', '4096',
             '-drive', (
                 f'if=pflash,format=raw,file={FIRMWARE},readonly=on'
