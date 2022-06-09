@@ -11,6 +11,7 @@ from functools import cached_property
 from daemon import DaemonContext
 
 from .qmp import QMP
+from . import utils
 
 ALPINE_ISO_URL = (
     'https://dl-cdn.alpinelinux.org/alpine/v3.15/releases/aarch64/'
@@ -65,7 +66,13 @@ class VM:
     def connect_qmp(self):
         return QMP(self.qmp_path)
 
-    def start(self, daemon=False, display=False, snapshot=False):
+    def start(
+        self,
+        daemon=False,
+        display=False,
+        snapshot=False,
+        wait_for_ssh=False,
+    ):
         logger.info('Starting %s ...', self.name)
 
         ssh_port = random.randrange(20000, 32000)
@@ -132,6 +139,11 @@ class VM:
             qemu_cmd += [
                 '-serial', f'unix:{self.serial_path},server=on,wait=off',
             ]
+
+            if wait_for_ssh:
+                if os.fork():
+                    return utils.wait_for_ssh(ssh_port)
+
             with DaemonContext(
                 files_preserve=[sys.stderr], stderr=sys.stderr
             ):
