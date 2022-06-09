@@ -159,7 +159,6 @@ class VM:
             '-boot', 'menu=on,splash-time=0',
             '-netdev', f'user,id=user,hostfwd=tcp::{ssh_port}-:22',
             '-device', 'virtio-net-pci,netdev=user,romfile=',
-            '-cdrom', db.image_path(self.config['image']),
         ]
 
         if display:
@@ -180,6 +179,10 @@ class VM:
             qemu_cmd += [
                 '-drive', f'if=virtio,file={self.disk_path}',
             ]
+
+        qemu_cmd += [
+            '-cdrom', db.image_path(self.config['image']),
+        ]
 
         if daemon:
             qemu_cmd += [
