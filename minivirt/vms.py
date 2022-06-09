@@ -66,7 +66,7 @@ class VM:
     def connect_qmp(self):
         return QMP(self.qmp_path)
 
-    def start(self, daemon=False, display=False):
+    def start(self, daemon=False, display=False, snapshot=False):
         logger.info('Starting %s ...', self.name)
 
         ssh_port = random.randrange(20000, 32000)
@@ -123,6 +123,11 @@ class VM:
         qemu_cmd += [
             '-cdrom', self.db.image_path(self.config['image']),
         ]
+
+        if snapshot:
+            qemu_cmd += [
+                '-snapshot',
+            ]
 
         if daemon:
             qemu_cmd += [
