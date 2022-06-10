@@ -26,11 +26,21 @@ def cli(verbose, debug):
 
 @cli.command()
 def doctor():
-    qemu_version = subprocess.check_output(
+    assert subprocess.check_output(
         ['qemu-system-aarch64', '--version']
-    )
-    assert qemu_version.startswith(b'QEMU emulator version')
-    logger.info('🚑👌')
+    ).startswith(b'QEMU emulator version')
+
+    assert subprocess.check_output(
+        ['qemu-img', '--version']
+    ).startswith(b'qemu-img version')
+
+    assert subprocess.check_output(
+        ['socat', '-h']
+    ).startswith(b'socat by Gerhard Rieger and contributors')
+
+    assert b'minivirt/cli.py' in subprocess.check_output(['du', __file__])
+
+    print('🚑👌')
 
 
 @cli.command()
