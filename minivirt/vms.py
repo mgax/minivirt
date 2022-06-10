@@ -56,7 +56,7 @@ class VM:
         self.qmp_path = self.vm_path / 'qmp'
         self.serial_path = self.vm_path / 'serial'
         self.ssh_config_path = self.vm_path / 'ssh-config'
-        self.disk_path = self.vm_path / 'disk.qemu'
+        self.disk_path = self.vm_path / 'disk.qcow2'
 
     @cached_property
     def config(self):
