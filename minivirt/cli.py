@@ -14,8 +14,15 @@ db = DB()
 
 @click.group()
 @click.option('-v', '--verbose', is_flag=True)
-def cli(verbose):
-    logging.basicConfig(level=logging.DEBUG if verbose else logging.WARNING)
+@click.option('-d', '--debug', is_flag=True)
+def cli(verbose, debug):
+    if debug:
+        level = logging.DEBUG
+    elif verbose:
+        level = logging.INFO
+    else:
+        level = logging.WARNING
+    logging.basicConfig(level=level)
 
 
 @cli.command()
