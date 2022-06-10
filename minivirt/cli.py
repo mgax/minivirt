@@ -62,6 +62,13 @@ def kill(name):
 
 @cli.command()
 @click.argument('name')
+def destroy(name):
+    vm = VM.open(db, name)
+    vm.destroy()
+
+
+@cli.command()
+@click.argument('name')
 def console(name):
     vm = VM.open(db, name)
     vm.console()

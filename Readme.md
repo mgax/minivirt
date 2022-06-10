@@ -14,7 +14,7 @@ python3 -m venv .venv
 ./minivirt.sh download-alpine
 ./minivirt.sh create foo
 ./minivirt.sh start foo --daemon --display
-./minivirt.sh kill foo
+./minivirt.sh destroy foo
 ```
 
 ### SSH

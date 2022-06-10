@@ -160,9 +160,8 @@ class VM:
             qmp = self.connect_qmp()
             qmp.quit()
 
-        self.cleanup()
-
-    def cleanup(self):
+    def destroy(self):
+        self.kill()
         if self.vm_path.exists():
             shutil.rmtree(self.vm_path)
 
