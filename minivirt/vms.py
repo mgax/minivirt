@@ -147,13 +147,13 @@ class VM:
             with DaemonContext(
                 files_preserve=[sys.stderr], stderr=sys.stderr
             ):
-                subprocess.check_call(qemu_cmd)
+                os.execvp(qemu_cmd[0], qemu_cmd)
 
         else:
             qemu_cmd += [
                 '-serial', 'mon:stdio',
             ]
-            subprocess.check_call(qemu_cmd)
+            os.execvp(qemu_cmd[0], qemu_cmd)
 
     def kill(self):
         if self.qmp_path.exists():
