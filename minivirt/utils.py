@@ -6,6 +6,10 @@ import select
 logger = logging.getLogger(__name__)
 
 
+class WaitTimeout(RuntimeError):
+    pass
+
+
 def waitfor(condition, timeout=10, poll_interval=0.1):
     expires = time() + timeout
     while time() < expires:
@@ -16,7 +20,7 @@ def waitfor(condition, timeout=10, poll_interval=0.1):
             return rv
         sleep(poll_interval)
 
-    raise RuntimeError('Timeout expired')
+    raise WaitTimeout('Timeout expired')
 
 
 def wait_for_ssh(port, timeout=10):

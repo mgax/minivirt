@@ -7,6 +7,7 @@ import shutil
 import random
 from textwrap import dedent
 from functools import cached_property
+from pathlib import Path
 
 from daemon import DaemonContext
 
@@ -14,6 +15,8 @@ from .qmp import QMP
 from . import utils
 
 FIRMWARE = '/opt/homebrew/share/qemu/edk2-aarch64-code.fd'
+
+VAGRANT_PRIVATE_KEY_PATH = Path(__file__).parent / 'vagrant-private-key'
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +54,6 @@ class VM:
         self.config_path = self.vm_path / 'config.json'
         self.qmp_path = self.vm_path / 'qmp'
         self.serial_path = self.vm_path / 'serial'
-        self.ssh_config_path = self.vm_path / 'ssh-config'
         self.disk_path = self.vm_path / 'disk.qcow2'
 
     def __repr__(self):
@@ -80,7 +82,12 @@ class VM:
 
         ssh_port = random.randrange(20000, 32000)
 
-        with self.ssh_config_path.open('w') as f:
+        ssh_private_key_path = self.vm_path / 'ssh-private-key'
+        shutil.copy(VAGRANT_PRIVATE_KEY_PATH, ssh_private_key_path)
+        ssh_private_key_path.chmod(0o600)
+
+        ssh_config_path = self.vm_path / 'ssh-config'
+        with ssh_config_path.open('w') as f:
             f.write(
                 dedent(
                     f'''\
@@ -90,11 +97,12 @@ class VM:
                             Hostname localhost
                             Port {ssh_port}
                             User root
+                            IdentityFile {ssh_private_key_path}
                     '''
                 )
             )
 
-        self.ssh_config_path.chmod(0o644)
+        ssh_config_path.chmod(0o644)
 
         qemu_cmd = [
             'qemu-system-aarch64',
@@ -144,9 +152,11 @@ class VM:
                 '-serial', f'unix:{self.serial_path},server=on,wait=off',
             ]
 
-            if wait_for_ssh:
-                if os.fork():
-                    return utils.wait_for_ssh(ssh_port)
+            if os.fork():
+                if wait_for_ssh:
+                    utils.wait_for_ssh(ssh_port)
+
+                return
 
             with DaemonContext(
                 files_preserve=[sys.stderr], stderr=sys.stderr

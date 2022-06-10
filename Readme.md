@@ -12,8 +12,10 @@ python3 -m venv .venv
 
 ```shell
 ./minivirt.sh download-alpine
-./minivirt.sh create alpine foo
-./minivirt.sh start foo --daemon --display
+./minivirt.sh create alpine foo --disk=10G
+./minivirt.sh -v bootstrap-alpine foo
+./minivirt.sh start foo --display
+# ... interact with the VM's display ...
 ./minivirt.sh destroy foo
 ```
 
@@ -26,22 +28,11 @@ Host *.minivirt
   Include ~/.cache/minivirt/*/ssh-config
 ```
 
-Start the VM, then connect to its console, and log in as root:
+Start the VM, then log into it using SSH:
 
 ```shell
-./minivirt.sh start foo --daemon
-./minivirt.sh console foo
-```
-
-Inside the VM, set up an SSH server:
-
-```shell
-echo | setup-alpine -q
-setup-sshd -k https://github.com/{username}.keys openssh
-```
-
-Then exit the console with `^]` (control-]). Now you can connect to the VM using SSH:
-
-```shell
+./minivirt.sh start foo --daemon --wait-for-ssh
 ssh foo.minivirt
+# ... do your thing ...
+ssh foo.minivirt poweroff
 ```

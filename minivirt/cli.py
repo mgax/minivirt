@@ -94,3 +94,12 @@ def ls():
         ['du', '-sh', *(p.name for p in db.path.glob('*'))],
         cwd=db.path
     )
+
+
+@cli.command()
+@click.argument('name')
+@click.option('--display', is_flag=True)
+def bootstrap_alpine(name, display):
+    from .contrib.alpine import Bootstrap
+    vm = VM.open(db, name)
+    Bootstrap(vm).bootstrap(display)
