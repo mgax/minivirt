@@ -1,11 +1,10 @@
 import subprocess
 import logging
-from pathlib import Path
 
 import click
 
 from .db import DB
-from .vms import ALPINE_ISO_URL, VM
+from .vms import VM
 
 logger = logging.getLogger(__name__)
 
@@ -36,16 +35,14 @@ def doctor():
 
 @cli.command()
 def download_alpine():
-    image = Path(ALPINE_ISO_URL).name
-    logger.info('Downloading %s ...', image)
-    db.download_image(ALPINE_ISO_URL, image)
+    db.download_alpine()
 
 
 @cli.command()
+@click.argument('image')
 @click.argument('name')
 @click.option('--disk', default=None)
-def create(name, **kwargs):
-    image = Path(ALPINE_ISO_URL).name
+def create(image, name, **kwargs):
     VM.create(db, name, image, **kwargs)
 
 

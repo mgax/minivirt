@@ -13,11 +13,6 @@ from daemon import DaemonContext
 from .qmp import QMP
 from . import utils
 
-ALPINE_ISO_URL = (
-    'https://dl-cdn.alpinelinux.org/alpine/v3.15/releases/aarch64/'
-    'alpine-standard-3.15.4-aarch64.iso'
-)
-
 FIRMWARE = '/opt/homebrew/share/qemu/edk2-aarch64-code.fd'
 
 logger = logging.getLogger(__name__)
@@ -27,6 +22,7 @@ class VM:
     @classmethod
     def create(cls, db, name, image, disk):
         vm = cls(db, name)
+        assert not vm.vm_path.exists()
         vm.vm_path.mkdir(parents=True)
 
         config = dict(
@@ -58,10 +54,17 @@ class VM:
         self.ssh_config_path = self.vm_path / 'ssh-config'
         self.disk_path = self.vm_path / 'disk.qcow2'
 
+    def __repr__(self):
+        return f'<VM {self.name!r}>'
+
     @cached_property
     def config(self):
         with self.config_path.open() as f:
             return json.load(f)
+
+    @cached_property
+    def image(self):
+        return self.db.get_image(self.config['image'])
 
     def connect_qmp(self):
         return QMP(self.qmp_path)
@@ -126,9 +129,10 @@ class VM:
                 '-drive', f'if=virtio,file={self.disk_path}',
             ]
 
-        qemu_cmd += [
-            '-cdrom', self.db.image_path(self.config['image']),
-        ]
+        if self.image.iso_path:
+            qemu_cmd += [
+                '-cdrom', self.db.image_path(self.image.iso_path),
+            ]
 
         if snapshot:
             qemu_cmd += [

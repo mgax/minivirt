@@ -12,7 +12,7 @@ python3 -m venv .venv
 
 ```shell
 ./minivirt.sh download-alpine
-./minivirt.sh create foo
+./minivirt.sh create alpine foo
 ./minivirt.sh start foo --daemon --display
 ./minivirt.sh destroy foo
 ```
