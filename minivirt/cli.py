@@ -103,3 +103,11 @@ def bootstrap_alpine(name, display):
     from .contrib.alpine import Bootstrap
     vm = VM.open(db, name)
     Bootstrap(vm).bootstrap(display)
+
+
+@cli.command()
+@click.argument('name')
+@click.argument('image')
+def commit(name, image):
+    vm = VM.open(db, name)
+    vm.commit(image)

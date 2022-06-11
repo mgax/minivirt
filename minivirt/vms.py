@@ -188,3 +188,13 @@ class VM:
                 f'unix-connect:{self.serial_path}',
             ],
         )
+
+    def commit(self, image):
+        image_path = self.db.image_path(image)
+        image_path.mkdir(parents=True)
+        config = {
+            'disk': True,
+        }
+        with (image_path / 'config.json').open('w') as f:
+            json.dump(config, f, indent=2)
+        shutil.copy(self.disk_path, image_path / self.disk_path.name)
