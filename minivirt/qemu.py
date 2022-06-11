@@ -1,10 +1,23 @@
 import logging
 import socket
 import json
+import subprocess
 
 from .utils import waitfor
 
 logger = logging.getLogger(__name__)
+
+QEMU_BINARY = 'qemu-system-aarch64'
+
+
+def doctor():
+    assert subprocess.check_output(
+        ['qemu-system-aarch64', '--version']
+    ).startswith(b'QEMU emulator version')
+
+    assert subprocess.check_output(
+        ['qemu-img', '--version']
+    ).startswith(b'qemu-img version')
 
 
 class QMP:

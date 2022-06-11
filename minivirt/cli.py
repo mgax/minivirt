@@ -7,6 +7,7 @@ import click
 from .db import DB
 from .vms import VM
 from .contrib import alpine
+from . import qemu
 
 logger = logging.getLogger(__name__)
 
@@ -28,13 +29,7 @@ def cli(verbose, debug):
 
 @cli.command()
 def doctor():
-    assert subprocess.check_output(
-        ['qemu-system-aarch64', '--version']
-    ).startswith(b'QEMU emulator version')
-
-    assert subprocess.check_output(
-        ['qemu-img', '--version']
-    ).startswith(b'qemu-img version')
+    qemu.doctor()
 
     assert subprocess.check_output(
         ['socat', '-h']

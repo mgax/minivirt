@@ -10,7 +10,7 @@ from pathlib import Path
 from contextlib import contextmanager
 
 
-from .qemu import QMP
+from .qemu import QMP, QEMU_BINARY
 from . import utils
 
 FIRMWARE = '/opt/homebrew/share/qemu/edk2-aarch64-code.fd'
@@ -116,7 +116,7 @@ class VM:
         ssh_config_path.chmod(0o644)
 
         qemu_cmd = [
-            'qemu-system-aarch64',
+            QEMU_BINARY,
             '-qmp', f'unix:{self.qmp_path},server,nowait',
             '-M', 'virt,highmem=off,accel=hvf',
             '-cpu', 'host',
