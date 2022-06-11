@@ -1,4 +1,5 @@
 import logging
+import os
 import subprocess
 from pathlib import Path
 
@@ -11,7 +12,10 @@ from .vms import VM
 
 logger = logging.getLogger(__name__)
 
-db = DB(Path.home() / '.cache' / 'minivirt')
+_db_path = os.environ.get(
+    'MINIVIRT_DB_PATH', Path.home() / '.cache' / 'minivirt'
+)
+db = DB(Path(_db_path))
 
 
 @click.group()
