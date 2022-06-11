@@ -19,6 +19,26 @@ python3 -m venv .venv
 ./minivirt.sh destroy foo
 ```
 
+### Images
+
+Commit a VM as an image:
+
+```shell
+./minivirt.sh commit foo bar
+```
+
+Save the image as a TAR archive:
+
+```shell
+./minivirt.sh save bar | gzip -1 > ~/bar.tgz
+```
+
+Later, load the image:
+
+```shell
+zcat ~/bar.tgz | ./minivirt.sh load bar
+```
+
 ### SSH
 
 Add these lines to your ssh config (`~/.ssh/config`):
