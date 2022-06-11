@@ -53,7 +53,7 @@ def ssh():
     def ssh(vm, command):
         ssh_config = Path(__file__).parent / 'ssh_config'
         return subprocess.check_output(
-            ['ssh', '-F', ssh_config, f'{vm.name}.minivirt', command]
+            ['ssh', '-F', ssh_config, f'{vm.name}.miv', command]
         )
 
     return ssh

@@ -102,7 +102,7 @@ class VM:
             f.write(
                 dedent(
                     f'''\
-                        Host {self.name}.minivirt
+                        Host {self.name}.miv
                             StrictHostKeyChecking no
                             UserKnownHostsFile /dev/null
                             Hostname localhost

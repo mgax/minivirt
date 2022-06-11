@@ -1,2 +1,2 @@
-Host *.minivirt
+Host *.miv
   Include ~/.cache/minivirt-tests/db/*/ssh-config
