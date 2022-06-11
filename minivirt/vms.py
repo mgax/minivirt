@@ -28,18 +28,30 @@ class VM:
         assert not vm.vm_path.exists()
         vm.vm_path.mkdir(parents=True)
 
+        if disk:
+            subprocess.check_call(
+                ['qemu-img', 'create', '-f', 'qcow2', vm.disk_path, disk]
+            )
+
+        if image.config['disk']:
+            disk = True
+            subprocess.check_call(
+                [
+                    'qemu-img', 'create', '-q',
+                    '-b', image.path / 'disk.qcow2',
+                    '-F', 'qcow2',
+                    '-f', 'qcow2',
+                    vm.disk_path,
+                ]
+            )
+
         config = dict(
-            image=image,
+            image=image.name,
             disk=disk,
         )
 
         with vm.config_path.open('w') as f:
             json.dump(config, f, indent=2)
-
-        if disk:
-            subprocess.check_call(
-                ['qemu-img', 'create', '-f', 'qcow2', vm.disk_path, disk]
-            )
 
         return vm
 

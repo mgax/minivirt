@@ -53,7 +53,7 @@ def download_alpine():
 @click.argument('name')
 @click.option('--disk', default=None)
 def create(image, name, **kwargs):
-    VM.create(db, name, image, **kwargs)
+    VM.create(db, name, db.get_image(image), **kwargs)
 
 
 @cli.command()
