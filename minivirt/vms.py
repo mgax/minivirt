@@ -1,17 +1,16 @@
-import os
-import logging
-import subprocess
 import json
-import shutil
+import logging
+import os
 import random
-from textwrap import dedent
+import shutil
+import subprocess
+from contextlib import contextmanager
 from functools import cached_property
 from pathlib import Path
-from contextlib import contextmanager
+from textwrap import dedent
 
-
-from .qemu import QMP, QEMU_BINARY
 from . import utils
+from .qemu import QEMU_BINARY, QMP
 
 FIRMWARE = '/opt/homebrew/share/qemu/edk2-aarch64-code.fd'
 

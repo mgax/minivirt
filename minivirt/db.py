@@ -1,9 +1,9 @@
-import sys
-import subprocess
-import logging
 import json
-from functools import cached_property
+import logging
 import shutil
+import subprocess
+import sys
+from functools import cached_property
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
+import json
 import logging
 import socket
-import json
 import subprocess
 
 from .utils import waitfor

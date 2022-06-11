@@ -1,7 +1,7 @@
 import logging
-from time import time, sleep
-import socket
 import select
+import socket
+from time import sleep, time
 
 logger = logging.getLogger(__name__)
 

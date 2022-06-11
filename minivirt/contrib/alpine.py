@@ -1,9 +1,9 @@
-import logging
-import socket
-import re
-from pathlib import Path
-import subprocess
 import json
+import logging
+import re
+import socket
+import subprocess
+from pathlib import Path
 
 import click
 

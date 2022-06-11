@@ -1,13 +1,13 @@
-import subprocess
 import logging
+import subprocess
 from pathlib import Path
 
 import click
 
+from . import qemu
+from .contrib import alpine
 from .db import DB
 from .vms import VM
-from .contrib import alpine
-from . import qemu
 
 logger = logging.getLogger(__name__)
 
