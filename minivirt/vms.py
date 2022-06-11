@@ -207,7 +207,10 @@ class VM:
         }
         with (image_path / 'config.json').open('w') as f:
             json.dump(config, f, indent=2)
-        shutil.copy(self.disk_path, image_path / self.disk_path.name)
+        subprocess.check_call([
+            'qemu-img', 'convert', '-O', 'qcow2',
+            self.disk_path, image_path / self.disk_path.name
+        ])
 
     @contextmanager
     def run(self, **kwargs):

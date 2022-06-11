@@ -31,6 +31,7 @@ def test_commit_run(db, vm, ssh):
         ssh(vm, 'touch marker-file && poweroff')
 
     vm.commit('newly-committed-image')
+    db.remove_image('base')
 
     try:
         bar = VM.create(db, 'bar', db.get_image('newly-committed-image'))
