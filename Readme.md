@@ -11,8 +11,8 @@ python3 -m venv .venv
 ## Usage
 
 ```shell
-./minivirt.sh alpine download
-./minivirt.sh create alpine foo --disk=10G
+./minivirt.sh alpine download 3.15.4
+./minivirt.sh create alpine-3.15.4-iso foo --disk=10G
 ./minivirt.sh -v alpine bootstrap foo
 ./minivirt.sh start foo --display
 # ... interact with the VM's display ...

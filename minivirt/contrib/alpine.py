@@ -11,8 +11,8 @@ from minivirt.utils import waitfor, WaitTimeout
 from minivirt.vms import VM
 
 ALPINE_ISO_URL = (
-    'https://dl-cdn.alpinelinux.org/alpine/v3.15/releases/aarch64/'
-    'alpine-standard-3.15.4-aarch64.iso'
+    'https://dl-cdn.alpinelinux.org/alpine/v{minor}/releases/aarch64/'
+    'alpine-virt-{version}-aarch64.iso'
 )
 
 VAGRANT_PUBLIC_KEY_URL = (
@@ -162,17 +162,20 @@ def cli():
 
 
 @cli.command()
-def download():
+@click.argument('version')
+def download(version):
     from minivirt.cli import db
 
-    image_path = db.image_path('alpine')
+    minor = re.match(r'\d+\.\d+', version).group()
+    iso_url = ALPINE_ISO_URL.format(version=version, minor=minor)
+    image_path = db.image_path(f'alpine-{version}-iso')
     assert not image_path.exists()
     image_path.mkdir(parents=True)
 
-    filename = Path(ALPINE_ISO_URL).name
+    filename = Path(iso_url).name
     logger.info('Downloading %s ...', filename)
     iso_path = image_path / filename
-    subprocess.check_call(['curl', '-L', ALPINE_ISO_URL, '-o', iso_path])
+    subprocess.check_call(['curl', '-L', iso_url, '-o', iso_path])
 
     config = {
         'iso': filename,
