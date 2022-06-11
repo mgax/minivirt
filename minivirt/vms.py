@@ -25,8 +25,8 @@ class VM:
     @classmethod
     def create(cls, db, name, image, disk=None):
         vm = cls(db, name)
-        assert not vm.vm_path.exists()
-        vm.vm_path.mkdir(parents=True)
+        assert not vm.path.exists()
+        vm.path.mkdir(parents=True)
 
         if disk:
             subprocess.check_call(
@@ -62,11 +62,11 @@ class VM:
     def __init__(self, db, name):
         self.db = db
         self.name = name
-        self.vm_path = db.vm_path(name)
-        self.config_path = self.vm_path / 'config.json'
-        self.qmp_path = self.vm_path / 'qmp'
-        self.serial_path = self.vm_path / 'serial'
-        self.disk_path = self.vm_path / 'disk.qcow2'
+        self.path = db.vm_path(name)
+        self.config_path = self.path / 'config.json'
+        self.qmp_path = self.path / 'qmp'
+        self.serial_path = self.path / 'serial'
+        self.disk_path = self.path / 'disk.qcow2'
 
     def __repr__(self):
         return f'<VM {self.name!r}>'
@@ -94,11 +94,11 @@ class VM:
 
         ssh_port = random.randrange(20000, 32000)
 
-        ssh_private_key_path = self.vm_path / 'ssh-private-key'
+        ssh_private_key_path = self.path / 'ssh-private-key'
         shutil.copy(VAGRANT_PRIVATE_KEY_PATH, ssh_private_key_path)
         ssh_private_key_path.chmod(0o600)
 
-        ssh_config_path = self.vm_path / 'ssh-config'
+        ssh_config_path = self.path / 'ssh-config'
         with ssh_config_path.open('w') as f:
             f.write(
                 dedent(
@@ -185,8 +185,8 @@ class VM:
 
     def destroy(self):
         self.kill()
-        if self.vm_path.exists():
-            shutil.rmtree(self.vm_path)
+        if self.path.exists():
+            shutil.rmtree(self.path)
 
     def console(self):
         os.execvp(
