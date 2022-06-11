@@ -14,7 +14,7 @@ def test_save_restore_run(db, ssh):
 
     try:
         vm = VM.create(db, 'foo', db.get_image('newly-loaded-image'))
-        with vm.run(wait_for_ssh=True):
+        with vm.run(wait_for_ssh=30):
             out = ssh(vm, 'hostname')
         assert out.strip() == b'alpine'
 
@@ -27,7 +27,7 @@ def test_commit_run(db, vm, ssh):
     VM.open(db, 'bar').destroy()
     db.remove_image('newly-committed-image')
 
-    with vm.run(wait_for_ssh=True):
+    with vm.run(wait_for_ssh=30):
         ssh(vm, 'touch marker-file && poweroff')
 
     vm.commit('newly-committed-image')
@@ -35,7 +35,7 @@ def test_commit_run(db, vm, ssh):
 
     try:
         bar = VM.create(db, 'bar', db.get_image('newly-committed-image'))
-        with bar.run(wait_for_ssh=True):
+        with bar.run(wait_for_ssh=30):
             out = ssh(bar, 'ls')
         assert out.strip() == b'marker-file'
 

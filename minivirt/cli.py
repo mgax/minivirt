@@ -53,7 +53,7 @@ def create(image, name, **kwargs):
 @click.option('--daemon', is_flag=True)
 @click.option('--display', is_flag=True)
 @click.option('--snapshot', is_flag=True)
-@click.option('--wait-for-ssh', is_flag=True)
+@click.option('--wait-for-ssh', type=int, default=None)
 def start(name, **kwargs):
     vm = VM.open(db, name)
     vm.start(**kwargs)

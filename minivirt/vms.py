@@ -156,7 +156,7 @@ class VM:
 
             if os.fork():
                 if wait_for_ssh:
-                    utils.wait_for_ssh(ssh_port)
+                    utils.wait_for_ssh(ssh_port, wait_for_ssh)
 
                 return
 

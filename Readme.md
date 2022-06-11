@@ -51,7 +51,7 @@ Host *.miv
 Start the VM, then log into it using SSH:
 
 ```shell
-./miv start foo --daemon --wait-for-ssh
+./miv start foo --daemon --wait-for-ssh=30
 ssh foo.miv
 # ... do your thing ...
 ssh foo.miv poweroff
