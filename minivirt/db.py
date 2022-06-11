@@ -4,6 +4,7 @@ import subprocess
 import logging
 import json
 from functools import cached_property
+import shutil
 
 ALPINE_ISO_URL = (
     'https://dl-cdn.alpinelinux.org/alpine/v3.15/releases/aarch64/'
@@ -42,6 +43,11 @@ class DB:
 
     def get_image(self, name):
         return Image(self, name)
+
+    def remove_image(self, name):
+        image_path = self.image_path(name)
+        if image_path.exists():
+            shutil.rmtree(image_path)
 
     def vm_path(self, name):
         return self.path / name
