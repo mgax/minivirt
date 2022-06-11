@@ -137,11 +137,16 @@ class Bootstrap:
             )
             self.wait(shell_prompt)
 
-            self.send(b'echo "GRUB_TIMEOUT=0" >> /etc/default/grub\n')
-            self.wait(shell_prompt)
+            if arch == 'aarch64':
+                self.send(b'echo "GRUB_TIMEOUT=0" >> /etc/default/grub\n')
+                self.wait(shell_prompt)
 
-            self.send(b'grub-mkconfig -o /boot/grub/grub.cfg\n')
-            self.wait(shell_prompt)
+                self.send(b'grub-mkconfig -o /boot/grub/grub.cfg\n')
+                self.wait(shell_prompt)
+
+            else:
+                self.send(b'echo "DEFAULT virt" >> /boot/extlinux.conf\n')
+                self.wait(shell_prompt)
 
             self.send(b'poweroff\n')
             waitfor(lambda: not self.vm.qmp_path.exists())
