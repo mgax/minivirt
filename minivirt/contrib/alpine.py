@@ -34,7 +34,7 @@ class Console:
         logger.debug('Received %r', chunk)
         return chunk
 
-    def wait_for_pattern(self, pattern, limit=1000, timeout=10):
+    def wait_for_pattern(self, pattern, limit=1000, timeout=30):
         buffer = b''
 
         def look_for_pattern():
@@ -104,7 +104,7 @@ class Bootstrap:
                 b'and continue\\? \\(y/n\\) \\[n\\] $'
             )
             self.send(b'y\n')
-            self.wait(shell_prompt, timeout=30)
+            self.wait(shell_prompt, timeout=60)
 
             logger.info('Rebooting from disk ...')
             self.send(b'reboot\n')
