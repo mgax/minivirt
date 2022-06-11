@@ -8,6 +8,8 @@ import random
 from textwrap import dedent
 from functools import cached_property
 from pathlib import Path
+from contextlib import contextmanager
+
 
 from .qmp import QMP
 from . import utils
@@ -21,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class VM:
     @classmethod
-    def create(cls, db, name, image, disk):
+    def create(cls, db, name, image, disk=None):
         vm = cls(db, name)
         assert not vm.vm_path.exists()
         vm.vm_path.mkdir(parents=True)
@@ -205,3 +207,12 @@ class VM:
         with (image_path / 'config.json').open('w') as f:
             json.dump(config, f, indent=2)
         shutil.copy(self.disk_path, image_path / self.disk_path.name)
+
+    @contextmanager
+    def run(self, **kwargs):
+        logger.info('Running %s ...', self.name)
+        try:
+            self.start(daemon=True, **kwargs)
+            yield
+        finally:
+            self.kill()

@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 import subprocess
 import logging
@@ -32,8 +33,8 @@ class Image:
 
 
 class DB:
-    def __init__(self):
-        self.path = Path.home() / '.cache' / 'minivirt'
+    def __init__(self, path):
+        self.path = path
         self.path.mkdir(parents=True, exist_ok=True)
 
     def image_path(self, filename):
@@ -65,7 +66,10 @@ class DB:
     def save(self, name):
         subprocess.check_call('tar c *', shell=True, cwd=self.image_path(name))
 
-    def load(self, name):
+    def load(self, name, stdin=sys.stdin, gzip=False):
         image_path = self.image_path(name)
         image_path.mkdir(parents=True)
-        subprocess.check_call(['tar', 'x'], cwd=image_path)
+        flags = 'x'
+        if gzip:
+            flags += 'z'
+        subprocess.check_call(['tar', flags], cwd=image_path, stdin=stdin)

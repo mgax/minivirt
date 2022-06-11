@@ -1,5 +1,6 @@
 import subprocess
 import logging
+from pathlib import Path
 
 import click
 
@@ -8,7 +9,7 @@ from .vms import VM
 
 logger = logging.getLogger(__name__)
 
-db = DB()
+db = DB(Path.home() / '.cache' / 'minivirt')
 
 
 @click.group()
