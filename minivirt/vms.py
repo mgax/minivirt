@@ -32,7 +32,7 @@ class VM:
                 ['qemu-img', 'create', '-f', 'qcow2', vm.disk_path, disk]
             )
 
-        if image.config['disk']:
+        if image.config.get('disk'):
             disk = True
             subprocess.check_call(
                 [
