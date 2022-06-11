@@ -7,13 +7,9 @@ from pathlib import Path
 
 import click
 
+from minivirt.qemu import arch
 from minivirt.utils import waitfor, WaitTimeout
 from minivirt.vms import VM
-
-ALPINE_ISO_URL = (
-    'https://dl-cdn.alpinelinux.org/alpine/v{minor}/releases/aarch64/'
-    'alpine-virt-{version}-aarch64.iso'
-)
 
 VAGRANT_PUBLIC_KEY_URL = (
     'https://raw.githubusercontent.com'
@@ -163,12 +159,16 @@ def cli():
 
 @cli.command()
 @click.argument('version')
-def download(version):
+@click.argument('name', default=None)
+def download(version, name):
     from minivirt.cli import db
 
     minor = re.match(r'\d+\.\d+', version).group()
-    iso_url = ALPINE_ISO_URL.format(version=version, minor=minor)
-    image_path = db.image_path(f'alpine-{version}-iso')
+    iso_url = (
+        f'https://dl-cdn.alpinelinux.org/alpine/v{minor}/releases/{arch}/'
+        f'alpine-virt-{version}-{arch}.iso'
+    )
+    image_path = db.image_path(name or f'alpine-{version}-{arch}-iso')
     assert not image_path.exists()
     image_path.mkdir(parents=True)
 

@@ -11,8 +11,8 @@ python3 -m venv .venv
 ## Usage
 
 ```shell
-./miv alpine download 3.15.4
-./miv create alpine-3.15.4-iso foo --disk=10G
+./miv alpine download 3.15.4 alpine-iso
+./miv create alpine-iso foo --disk=10G
 ./miv -v alpine bootstrap foo
 ./miv start foo --display
 # ... interact with the VM's display ...

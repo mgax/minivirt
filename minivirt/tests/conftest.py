@@ -1,17 +1,19 @@
 import logging
-import os
 import subprocess
 from pathlib import Path
 
 import pytest
 
 from minivirt.db import DB
+from minivirt.qemu import arch
 from minivirt.vms import VM
 
 logger = logging.getLogger(__name__)
 
 CACHE_PATH = Path.home() / '.cache' / 'minivirt-tests'
-BASE_IMAGE_URL = os.environ['MINIVIRT_TESTING_IMAGE_URL']
+BASE_IMAGE_URL = (
+    f'https://f003.backblazeb2.com/file/minivirt/alpine-3.15.4-{arch}.tgz'
+)
 
 
 @pytest.fixture
@@ -21,6 +23,7 @@ def base_image_path():
         logger.info(
             'Base image not present, downloading from %s ...', BASE_IMAGE_URL
         )
+        CACHE_PATH.mkdir(parents=True, exist_ok=True)
         subprocess.check_call(['curl', '-sL', BASE_IMAGE_URL, '-o', path])
     assert path.exists()
     return path
@@ -28,7 +31,6 @@ def base_image_path():
 
 @pytest.fixture
 def db(base_image_path):
-    CACHE_PATH.mkdir(parents=True, exist_ok=True)
     db = DB(CACHE_PATH / 'db')
 
     if not db.image_path('base').exists():

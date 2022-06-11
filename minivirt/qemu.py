@@ -7,12 +7,32 @@ from .utils import waitfor
 
 logger = logging.getLogger(__name__)
 
-QEMU_BINARY = 'qemu-system-aarch64'
+machine = subprocess.check_output(['uname', '-m']).decode('utf8').strip()
+
+if machine == 'arm64':
+    firmware = '/opt/homebrew/share/qemu/edk2-aarch64-code.fd'
+    arch = 'aarch64'
+    command_prefix = [
+        'qemu-system-aarch64',
+        '-M', 'virt,highmem=off,accel=hvf',
+        '-cpu', 'host',
+        '-drive', f'if=pflash,format=raw,file={firmware},readonly=on',
+    ]
+
+elif machine == 'x86_64':
+    arch = 'x86_64'
+    command_prefix = [
+        'qemu-system-x86_64',
+        '-enable-kvm',
+    ]
+
+else:
+    raise RuntimeError(f'Unknown machine {machine!r}')
 
 
 def doctor():
     assert subprocess.check_output(
-        ['qemu-system-aarch64', '--version']
+        [command_prefix[0], '--version']
     ).startswith(b'QEMU emulator version')
 
     assert subprocess.check_output(

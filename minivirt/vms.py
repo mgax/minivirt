@@ -9,10 +9,7 @@ from functools import cached_property
 from pathlib import Path
 from textwrap import dedent
 
-from . import utils
-from .qemu import QEMU_BINARY, QMP
-
-FIRMWARE = '/opt/homebrew/share/qemu/edk2-aarch64-code.fd'
+from . import qemu, utils
 
 VAGRANT_PRIVATE_KEY_PATH = Path(__file__).parent / 'vagrant-private-key'
 
@@ -79,7 +76,7 @@ class VM:
         return self.db.get_image(self.config['image'])
 
     def connect_qmp(self):
-        return QMP(self.qmp_path)
+        return qemu.QMP(self.qmp_path)
 
     def start(
         self,
@@ -115,14 +112,9 @@ class VM:
         ssh_config_path.chmod(0o644)
 
         qemu_cmd = [
-            QEMU_BINARY,
+            *qemu.command_prefix,
             '-qmp', f'unix:{self.qmp_path},server,nowait',
-            '-M', 'virt,highmem=off,accel=hvf',
-            '-cpu', 'host',
             '-m', '4096',
-            '-drive', (
-                f'if=pflash,format=raw,file={FIRMWARE},readonly=on'
-            ),
             '-boot', 'menu=on,splash-time=0',
             '-netdev', f'user,id=user,hostfwd=tcp::{ssh_port}-:22',
             '-device', 'virtio-net-pci,netdev=user,romfile=',
