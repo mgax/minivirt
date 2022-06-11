@@ -177,13 +177,15 @@ class VM:
             ]
             os.execvp(qemu_cmd[0], qemu_cmd)
 
-    def kill(self):
+    def kill(self, wait=False):
         if self.qmp_path.exists():
             qmp = self.connect_qmp()
             qmp.quit()
+            if wait:
+                utils.waitfor(lambda: not self.qmp_path.exists())
 
     def destroy(self):
-        self.kill()
+        self.kill(wait=True)
         if self.path.exists():
             shutil.rmtree(self.path)
 
