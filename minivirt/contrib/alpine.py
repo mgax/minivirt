@@ -1,8 +1,19 @@
 import logging
 import socket
 import re
+from pathlib import Path
+import subprocess
+import json
+
+import click
 
 from minivirt.utils import waitfor, WaitTimeout
+from minivirt.vms import VM
+
+ALPINE_ISO_URL = (
+    'https://dl-cdn.alpinelinux.org/alpine/v3.15/releases/aarch64/'
+    'alpine-standard-3.15.4-aarch64.iso'
+)
 
 VAGRANT_PUBLIC_KEY_URL = (
     'https://raw.githubusercontent.com'
@@ -143,3 +154,39 @@ class Bootstrap:
             self.vm.kill()
 
         logger.info('Build finished.')
+
+
+@click.group()
+def cli():
+    pass
+
+
+@cli.command()
+def download():
+    from minivirt.cli import db
+
+    image_path = db.image_path('alpine')
+    assert not image_path.exists()
+    image_path.mkdir(parents=True)
+
+    filename = Path(ALPINE_ISO_URL).name
+    logger.info('Downloading %s ...', filename)
+    iso_path = image_path / filename
+    subprocess.check_call(['curl', '-L', ALPINE_ISO_URL, '-o', iso_path])
+
+    config = {
+        'iso': filename,
+    }
+    config_path = image_path / 'config.json'
+    with config_path.open('w') as f:
+        json.dump(config, f, indent=2)
+
+
+@cli.command()
+@click.argument('name')
+@click.option('--display', is_flag=True)
+def bootstrap(name, display):
+    from minivirt.cli import db
+
+    vm = VM.open(db, name)
+    Bootstrap(vm).bootstrap(display)

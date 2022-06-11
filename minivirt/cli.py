@@ -6,6 +6,7 @@ import click
 
 from .db import DB
 from .vms import VM
+from .contrib import alpine
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +43,6 @@ def doctor():
     assert b'minivirt/cli.py' in subprocess.check_output(['du', __file__])
 
     print('🚑👌')
-
-
-@cli.command()
-def download_alpine():
-    db.download_alpine()
 
 
 @cli.command()
@@ -99,15 +95,6 @@ def ls():
 
 @cli.command()
 @click.argument('name')
-@click.option('--display', is_flag=True)
-def bootstrap_alpine(name, display):
-    from .contrib.alpine import Bootstrap
-    vm = VM.open(db, name)
-    Bootstrap(vm).bootstrap(display)
-
-
-@cli.command()
-@click.argument('name')
 @click.argument('image')
 def commit(name, image):
     vm = VM.open(db, name)
@@ -124,3 +111,6 @@ def save(image):
 @click.argument('image')
 def load(image):
     db.load(image)
+
+
+cli.add_command(alpine.cli, name='alpine')

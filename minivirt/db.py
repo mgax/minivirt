@@ -1,15 +1,9 @@
 import sys
-from pathlib import Path
 import subprocess
 import logging
 import json
 from functools import cached_property
 import shutil
-
-ALPINE_ISO_URL = (
-    'https://dl-cdn.alpinelinux.org/alpine/v3.15/releases/aarch64/'
-    'alpine-standard-3.15.4-aarch64.iso'
-)
 
 logger = logging.getLogger(__name__)
 
@@ -51,23 +45,6 @@ class DB:
 
     def vm_path(self, name):
         return self.path / name
-
-    def download_alpine(self):
-        image_path = self.image_path('alpine')
-        assert not image_path.exists()
-        image_path.mkdir(parents=True)
-
-        filename = Path(ALPINE_ISO_URL).name
-        logger.info('Downloading %s ...', filename)
-        iso_path = image_path / filename
-        subprocess.check_call(['curl', '-L', ALPINE_ISO_URL, '-o', iso_path])
-
-        config = {
-            'iso': filename,
-        }
-        config_path = image_path / 'config.json'
-        with config_path.open('w') as f:
-            json.dump(config, f, indent=2)
 
     def save(self, name, stdout=sys.stdout):
         subprocess.check_call(

@@ -11,9 +11,9 @@ python3 -m venv .venv
 ## Usage
 
 ```shell
-./minivirt.sh download-alpine
+./minivirt.sh alpine download
 ./minivirt.sh create alpine foo --disk=10G
-./minivirt.sh -v bootstrap-alpine foo
+./minivirt.sh -v alpine bootstrap foo
 ./minivirt.sh start foo --display
 # ... interact with the VM's display ...
 ./minivirt.sh destroy foo
