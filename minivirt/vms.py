@@ -116,7 +116,7 @@ class VM:
             '-qmp', f'unix:{self.qmp_path},server,nowait',
             '-m', '4096',
             '-boot', 'menu=on,splash-time=0',
-            '-netdev', f'user,id=user,hostfwd=tcp::{ssh_port}-:22',
+            '-netdev', f'user,id=user,hostfwd=tcp:127.0.0.1:{ssh_port}-:22',
             '-device', 'virtio-net-pci,netdev=user,romfile=',
         ]
 
