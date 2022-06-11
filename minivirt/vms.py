@@ -9,8 +9,6 @@ from textwrap import dedent
 from functools import cached_property
 from pathlib import Path
 
-from daemon import DaemonContext
-
 from .qmp import QMP
 from . import utils
 
@@ -170,10 +168,7 @@ class VM:
 
                 return
 
-            with DaemonContext(
-                files_preserve=[sys.stderr], stderr=sys.stderr
-            ):
-                os.execvp(qemu_cmd[0], qemu_cmd)
+            os.execvp(qemu_cmd[0], qemu_cmd)
 
         else:
             qemu_cmd += [
