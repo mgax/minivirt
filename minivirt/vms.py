@@ -10,7 +10,7 @@ from pathlib import Path
 from contextlib import contextmanager
 
 
-from .qmp import QMP
+from .qemu import QMP
 from . import utils
 
 FIRMWARE = '/opt/homebrew/share/qemu/edk2-aarch64-code.fd'
