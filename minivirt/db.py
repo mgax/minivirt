@@ -61,3 +61,11 @@ class DB:
         config_path = image_path / 'config.json'
         with config_path.open('w') as f:
             json.dump(config, f, indent=2)
+
+    def save(self, name):
+        subprocess.check_call('tar c *', shell=True, cwd=self.image_path(name))
+
+    def load(self, name):
+        image_path = self.image_path(name)
+        image_path.mkdir(parents=True)
+        subprocess.check_call(['tar', 'x'], cwd=image_path)

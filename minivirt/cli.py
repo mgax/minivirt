@@ -111,3 +111,15 @@ def bootstrap_alpine(name, display):
 def commit(name, image):
     vm = VM.open(db, name)
     vm.commit(image)
+
+
+@cli.command()
+@click.argument('image')
+def save(image):
+    db.save(image)
+
+
+@cli.command()
+@click.argument('image')
+def load(image):
+    db.load(image)
