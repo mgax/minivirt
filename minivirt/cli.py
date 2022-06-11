@@ -86,10 +86,14 @@ def console(name):
 
 @cli.command()
 def ls():
-    subprocess.check_call(
-        ['du', '-sh', *(p.name for p in db.path.glob('*'))],
-        cwd=db.path
-    )
+    for image_path in db.path.glob('images/*'):
+        subprocess.check_call(
+            ['du', '-sh', f'images/{image_path.name}'], cwd=db.path
+        )
+    for vm_path in db.path.glob('vms/*'):
+        subprocess.check_call(
+            ['du', '-sh', f'vms/{vm_path.name}'], cwd=db.path
+        )
 
 
 @cli.command()

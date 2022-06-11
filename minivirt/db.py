@@ -30,10 +30,11 @@ class Image:
 class DB:
     def __init__(self, path):
         self.path = path
-        self.path.mkdir(parents=True, exist_ok=True)
+        self.images_path = self.path / 'images'
+        self.vms_path = self.path / 'vms'
 
     def image_path(self, filename):
-        return self.path / filename
+        return self.images_path / filename
 
     def get_image(self, name):
         return Image(self, name)
@@ -44,7 +45,7 @@ class DB:
             shutil.rmtree(image_path)
 
     def vm_path(self, name):
-        return self.path / name
+        return self.vms_path / name
 
     def save(self, name, stdout=sys.stdout):
         subprocess.check_call(
