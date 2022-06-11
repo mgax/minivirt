@@ -193,3 +193,14 @@ def bootstrap(name, display):
 
     vm = VM.open(db, name)
     Bootstrap(vm).bootstrap(display)
+
+
+@cli.command()
+@click.argument('image')
+@click.argument('name')
+@click.argument('disk')
+@click.option('--display', is_flag=True)
+def install(image, name, disk, display):
+    from minivirt.cli import db
+    vm = VM.create(db, name, db.get_image(image), disk=disk)
+    Bootstrap(vm).bootstrap(display)
