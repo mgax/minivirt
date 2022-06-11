@@ -63,8 +63,10 @@ class DB:
         with config_path.open('w') as f:
             json.dump(config, f, indent=2)
 
-    def save(self, name):
-        subprocess.check_call('tar c *', shell=True, cwd=self.image_path(name))
+    def save(self, name, stdout=sys.stdout):
+        subprocess.check_call(
+            'tar c *', shell=True, cwd=self.image_path(name), stdout=stdout
+        )
 
     def load(self, name, stdin=sys.stdin, gzip=False):
         image_path = self.image_path(name)

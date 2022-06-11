@@ -216,4 +216,4 @@ class VM:
             self.start(daemon=True, **kwargs)
             yield
         finally:
-            self.kill()
+            self.kill(wait=True)
