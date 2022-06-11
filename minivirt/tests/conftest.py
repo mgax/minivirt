@@ -10,22 +10,30 @@ from minivirt.vms import VM
 
 logger = logging.getLogger(__name__)
 
+CACHE_PATH = Path.home() / '.cache' / 'minivirt-tests'
+BASE_IMAGE_URL = os.environ['MINIVIRT_TESTING_IMAGE_URL']
+
 
 @pytest.fixture
-def db():
-    cache = Path.home() / '.cache' / 'minivirt-tests'
-    cache.mkdir(parents=True, exist_ok=True)
-    db = DB(cache / 'db')
+def base_image_path():
+    path = CACHE_PATH / Path(BASE_IMAGE_URL).name
+    if not path.exists():
+        logger.info(
+            'Base image not present, downloading from %s ...', BASE_IMAGE_URL
+        )
+        subprocess.check_call(['curl', '-sL', BASE_IMAGE_URL, '-o', path])
+    assert path.exists()
+    return path
+
+
+@pytest.fixture
+def db(base_image_path):
+    CACHE_PATH.mkdir(parents=True, exist_ok=True)
+    db = DB(CACHE_PATH / 'db')
 
     if not db.image_path('base').exists():
-        base_image_url = os.environ['MINIVIRT_TESTING_IMAGE_URL']
-        logger.info(
-            'Base image not present, downloading from %s ...', base_image_url
-        )
-        with subprocess.Popen(
-            ['curl', '-sL', base_image_url], stdout=subprocess.PIPE
-        ) as curl:
-            db.load('base', stdin=curl.stdout, gzip=True)
+        with base_image_path.open('rb') as f:
+            db.load('base', stdin=f, gzip=True)
 
     return db
 
