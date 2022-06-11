@@ -56,3 +56,12 @@ ssh foo.miv
 # ... do your thing ...
 ssh foo.miv poweroff
 ```
+
+## Development
+
+To run the test suite:
+
+```shell
+.venv/bin/pip3 install -r requirements/dev.txt
+.venv/bin/pytest
+```
