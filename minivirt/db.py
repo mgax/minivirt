@@ -5,6 +5,8 @@ import subprocess
 import sys
 from functools import cached_property
 
+from . import vms
+
 logger = logging.getLogger(__name__)
 
 
@@ -59,3 +61,11 @@ class DB:
         if gzip:
             flags += 'z'
         subprocess.check_call(['tar', flags], cwd=image_path, stdin=stdin)
+
+    def iter_images(self):
+        for path in self.images_path.iterdir():
+            yield Image(self, path.name)
+
+    def iter_vms(self):
+        for path in self.vms_path.iterdir():
+            yield vms.VM(self, path.name)

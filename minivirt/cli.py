@@ -85,15 +85,24 @@ def console(name):
 
 
 @cli.command()
-def ls():
-    for image_path in db.path.glob('images/*'):
-        subprocess.check_call(
-            ['du', '-sh', f'images/{image_path.name}'], cwd=db.path
-        )
-    for vm_path in db.path.glob('vms/*'):
-        subprocess.check_call(
-            ['du', '-sh', f'vms/{vm_path.name}'], cwd=db.path
-        )
+@click.option('-a', '--all', 'all_', is_flag=True)
+def ps(all_):
+    for vm in db.iter_vms():
+        is_running = vm.is_running
+        if not is_running and not all_:
+            continue
+        du_output = subprocess.check_output(['du', '-sh', vm.path])
+        size = du_output.decode('utf8').split()[0]
+        up_or_down = 'up' if is_running else 'down'
+        print(vm.name, up_or_down, size)
+
+
+@cli.command()
+def images():
+    for image in db.iter_images():
+        du_output = subprocess.check_output(['du', '-sh', image.path])
+        size = du_output.decode('utf8').split()[0]
+        print(image.name, size)
 
 
 @cli.command()

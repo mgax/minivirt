@@ -78,6 +78,10 @@ class VM:
     def connect_qmp(self):
         return qemu.QMP(self.qmp_path)
 
+    @property
+    def is_running(self):
+        return self.qmp_path.exists()
+
     def start(
         self,
         daemon=False,

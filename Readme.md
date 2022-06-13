@@ -20,6 +20,12 @@ python3 -m venv .venv
 
 ### Images
 
+Display images in the database:
+
+```shell
+./miv images
+```
+
 Commit a VM as an image:
 
 ```shell
@@ -36,6 +42,14 @@ Later, load the image:
 
 ```shell
 zcat ~/bar.tgz | ./miv load bar
+```
+
+### VMs
+
+Show VMs in the database:
+
+```shell
+./miv ps -a
 ```
 
 ### SSH
