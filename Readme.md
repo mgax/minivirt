@@ -2,7 +2,20 @@
 
 ## Installation
 
+You'll need [qemu][], [python3][] and [socat][] installed.
+
+[qemu]: https://www.qemu.org/
+[python3]: https://www.python.org/
+[socat]: http://www.dest-unreach.org/socat/
+
+* MacOS: `brew install qemu socat`
+* Debian: `apt install qemu-system-x86 qemu-utils socat`
+
+Then, install _MiniVirt_ and run a checkup:
+
 ```shell
+git clone https://github.com/mgax/minivirt
+cd minivirt
 python3 -m venv .venv
 .venv/bin/pip3 install -r requirements/base.txt
 ./miv doctor
