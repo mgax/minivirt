@@ -24,6 +24,7 @@ elif machine == 'x86_64':
     command_prefix = [
         'qemu-system-x86_64',
         '-enable-kvm',
+        '-cpu', 'host',
     ]
 
 else:
