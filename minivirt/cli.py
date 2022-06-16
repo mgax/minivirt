@@ -39,6 +39,9 @@ def doctor():
         ['socat', '-h']
     ).startswith(b'socat by Gerhard Rieger and contributors')
 
+    tar_output = subprocess.check_output(['tar', '--version'])
+    assert any(impl in tar_output for impl in [b'GNU tar', b'bsdtar'])
+
     assert b'minivirt/cli.py' in subprocess.check_output(['du', __file__])
 
     print('🚑👌')
