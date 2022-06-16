@@ -178,12 +178,18 @@ class VM:
             ]
             os.execvp(qemu_cmd[0], qemu_cmd)
 
+    def wait(self, timeout=10):
+        logger.info('Waiting for %s to exit ...', self)
+        utils.waitfor(lambda: not self.qmp_path.exists(), timeout=timeout)
+        logger.info('%s has stopped.', self)
+
     def kill(self, wait=False):
         if self.qmp_path.exists():
+            logger.info('%s is running; killing via QMP ...', self)
             qmp = self.connect_qmp()
             qmp.quit()
             if wait:
-                utils.waitfor(lambda: not self.qmp_path.exists())
+                self.wait()
 
     def destroy(self):
         self.kill(wait=True)

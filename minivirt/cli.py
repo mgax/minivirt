@@ -6,7 +6,7 @@ from pathlib import Path
 import click
 
 from . import qemu
-from .contrib import alpine
+from .contrib import alpine, ci
 from .db import DB
 from .vms import VM
 
@@ -130,3 +130,4 @@ def load(image):
 
 
 cli.add_command(alpine.cli, name='alpine')
+cli.add_command(ci.cli, name='ci')
