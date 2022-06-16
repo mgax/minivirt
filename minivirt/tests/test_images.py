@@ -13,7 +13,9 @@ def test_save_restore_run(db, ssh):
         db.load('newly-loaded-image', stdin=f)
 
     try:
-        vm = VM.create(db, 'foo', db.get_image('newly-loaded-image'))
+        vm = VM.create(
+            db, 'foo', db.get_image('newly-loaded-image'), memory=512
+        )
         with vm.run(wait_for_ssh=30):
             out = ssh(vm, 'hostname')
         assert out.strip() == b'alpine'
@@ -34,7 +36,9 @@ def test_commit_run(db, vm, ssh):
     db.remove_image('base')
 
     try:
-        bar = VM.create(db, 'bar', db.get_image('newly-committed-image'))
+        bar = VM.create(
+            db, 'bar', db.get_image('newly-committed-image'), memory=512
+        )
         with bar.run(wait_for_ssh=30):
             out = ssh(bar, 'ls')
         assert out.strip() == b'marker-file'

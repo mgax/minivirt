@@ -50,6 +50,7 @@ def doctor():
 @cli.command()
 @click.argument('image')
 @click.argument('name')
+@click.option('--memory', default=4096)
 @click.option('--disk', default=None)
 def create(image, name, **kwargs):
     VM.create(db, name, db.get_image(image), **kwargs)

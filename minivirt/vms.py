@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class VM:
     @classmethod
-    def create(cls, db, name, image, disk=None):
+    def create(cls, db, name, image, memory, disk=None):
         vm = cls(db, name)
         assert not vm.path.exists()
         vm.path.mkdir(parents=True)
@@ -40,13 +40,13 @@ class VM:
                 ]
             )
 
-        config = dict(
-            image=image.name,
-            disk=disk,
+        vm._write_config(
+            dict(
+                image=image.name,
+                disk=disk,
+                memory=memory,
+            )
         )
-
-        with vm.config_path.open('w') as f:
-            json.dump(config, f, indent=2)
 
         return vm
 
@@ -65,6 +65,12 @@ class VM:
 
     def __repr__(self):
         return f'<VM {self.name!r}>'
+
+    def _write_config(self, config):
+        with self.config_path.open('w') as f:
+            json.dump(config, f, indent=2)
+
+        self.__dict__.pop('config', None)
 
     @cached_property
     def config(self):
@@ -118,7 +124,7 @@ class VM:
         qemu_cmd = [
             *qemu.command_prefix,
             '-qmp', f'unix:{self.qmp_path},server,nowait',
-            '-m', '4096',
+            '-m', str(self.config['memory']),
             '-boot', 'menu=on,splash-time=0',
             '-netdev', f'user,id=user,hostfwd=tcp:127.0.0.1:{ssh_port}-:22',
             '-device', 'virtio-net-pci,netdev=user,romfile=',

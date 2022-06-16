@@ -10,6 +10,7 @@ You'll need [qemu][], [python3][] and [socat][] installed.
 
 * MacOS: `brew install qemu socat`
 * Debian: `apt install qemu-system-x86 qemu-utils socat`
+* Alpine: `apk add py3-pip qemu qemu-system-x86_64 qemu-img socat tar git`
 
 Then, install _MiniVirt_ and run a checkup:
 
