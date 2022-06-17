@@ -56,3 +56,55 @@ def testsuite(name):
         ssh(vm, 'pip3 install pytest')
         ssh(vm, 'miv doctor')
         ssh(vm, 'cd minivirt; pytest -vv')
+
+
+@cli.command()
+@click.argument('name')
+def install_github_runner(name):
+    from minivirt.cli import db
+
+    packages = [
+        'bash',
+        'vim',
+        'gcompat',
+        'icu',
+    ]
+    sed_rule = r's|\(root:x:0:0:root:/root:\)/bin/ash|\1/bin/bash|'
+    github_runner_url = (
+        'https://github.com/actions/runner/releases/download/'
+        'v2.293.0/actions-runner-linux-x64-2.293.0.tar.gz'
+    )
+
+    vm = VM.open(db, name)
+    with vm.run(wait_for_ssh=30):
+        ssh(vm, f'apk add {" ".join(packages)}')
+        ssh(vm, f'sed -i {shlex.quote(sed_rule)} /etc/passwd')
+        ssh(vm, 'curl -LOs https://dot.net/v1/dotnet-install.sh')
+        ssh(vm, 'bash dotnet-install.sh -c 6.0')
+        ssh(vm, 'ln -s /root/.dotnet/dotnet /usr/local/bin')
+        ssh(vm, 'mkdir actions-runner')
+        ssh(vm, f'cd actions-runner'
+                f' && curl -Ls {github_runner_url} | tar xz')
+        ssh(vm, 'poweroff')
+        vm.wait()
+
+
+@cli.command()
+@click.argument('name')
+@click.argument('repo')
+@click.argument('token')
+def setup_github_runner(name, repo, token):
+    from minivirt.cli import db
+
+    vm = VM.open(db, name)
+    with vm.run(wait_for_ssh=30):
+        ssh(
+            vm,
+            f'cd actions-runner'
+            f' && ./bin/Runner.Listener configure'
+            f'      --url {repo}'
+            f'      --token {token}'
+            f'      --unattended'
+        )
+        ssh(vm, 'poweroff')
+        vm.wait()
