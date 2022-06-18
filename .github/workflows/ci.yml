@@ -1,0 +1,19 @@
+name: CI
+on: [push]
+
+jobs:
+  ci:
+    runs-on: self-hosted
+    steps:
+      - name: Prepare
+        run: |
+          set -xeuo pipefail
+          python3 -m venv .venv
+          .venv/bin/pip3 install -e .
+          .venv/bin/pip3 install pytest
+
+      - name: Testsuite
+        run: |
+          set -xeuo pipefail
+          .venv/bin/miv doctor
+          .venv/bin/pytest -vv
