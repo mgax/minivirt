@@ -1,0 +1,22 @@
+name: CI
+on: [push]
+
+jobs:
+  ci:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Prepare
+        run: |
+          set -xeuo pipefail
+          python3 -m venv .venv
+          .venv/bin/pip3 install -e .
+          .venv/bin/pip3 install pytest
+
+      - name: Testsuite
+        run: |
+          set -xeuo pipefail
+          .venv/bin/miv doctor
+          .venv/bin/pytest -vv --color=yes
