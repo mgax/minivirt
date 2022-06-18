@@ -5,6 +5,9 @@ jobs:
   ci:
     runs-on: self-hosted
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Prepare
         run: |
           set -xeuo pipefail
