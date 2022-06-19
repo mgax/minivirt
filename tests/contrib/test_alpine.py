@@ -1,9 +1,11 @@
+import pytest
 from click.testing import CliRunner
 
 from minivirt.cli import cli
 from minivirt.vms import VM
 
 
+@pytest.mark.slow
 def test_bootstrap(db, monkeypatch):
     monkeypatch.setattr('minivirt.cli.db', db)
     runner = CliRunner()
