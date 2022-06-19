@@ -46,3 +46,16 @@ def test_commit_run(db, vm):
     finally:
         db.get_vm('bar').destroy()
         db.remove_image('newly-committed-image')
+
+
+def test_checksum(db):
+    with db.create_image() as creator:
+        with (creator.path / 'foo').open('wb') as f:
+            f.write(b'Hello,')
+        with (creator.path / 'bar').open('wb') as f:
+            f.write(b'World!')
+    # bar:514b6bb7c846ecfb8d2d29ef0b5c79b63e6ae838f123da936fe827fda654276c
+    # foo:dafe7694460f4e37b708f5134f2f7f759cb997f9cb612d6ca566dd6e6a34353f
+    assert creator.image.name == (
+        '8492b89d0572b9dd3ee9597aa308c0887c1d26844dddbdd1c92408307f677887'
+    )
