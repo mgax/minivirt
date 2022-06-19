@@ -10,6 +10,7 @@ from pathlib import Path
 from textwrap import dedent
 
 from . import qemu, utils
+from .exceptions import VmIsRunning
 
 VAGRANT_PRIVATE_KEY_PATH = Path(__file__).parent / 'vagrant-private-key'
 
@@ -95,6 +96,9 @@ class VM:
         snapshot=False,
         wait_for_ssh=False,
     ):
+        if self.is_running:
+            raise VmIsRunning(f'{self} is already running')
+
         logger.info('Starting %s ...', self.name)
 
         ssh_port = random.randrange(20000, 32000)

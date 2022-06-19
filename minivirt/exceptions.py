@@ -1,0 +1,2 @@
+class VmIsRunning(RuntimeError):
+    pass
