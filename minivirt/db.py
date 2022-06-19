@@ -22,6 +22,9 @@ class Image:
         self.path = db.image_path(name)
         self.config_path = self.path / 'config.json'
 
+    def __repr__(self):
+        return f'<Image {self.name[:8]}>'
+
     @cached_property
     def config(self):
         with self.config_path.open() as f:
@@ -36,6 +39,10 @@ class Image:
     def tag(self, name):
         self.db.image_path(name).symlink_to(self.name)
 
+    def fsck(self):
+        if tree_checksum(self.path) != self.name:
+            yield 'invalid checksum'
+
 
 def file_chunks(path, chunk_size=65536):
     with path.open('rb') as f:
@@ -47,6 +54,13 @@ def checksum(path):
     for chunk in file_chunks(path):
         hash.update(chunk)
     return hash.hexdigest()
+
+
+def tree_checksum(path):
+    tree = StringIO()
+    for file_path in sorted(path.glob('**/*')):
+        tree.write(f'{file_path.relative_to(path)}:{checksum(file_path)}\n')
+    return hashlib.sha256(tree.getvalue().encode('utf8')).hexdigest()
 
 
 class ImageCreator:
@@ -66,20 +80,19 @@ class ImageCreator:
                 shutil.rmtree(self.path)
 
     def commit(self):
-        tree = StringIO()
-        for path in sorted(self.path.glob('**/*')):
-            tree.write(f'{path.relative_to(self.path)}:{checksum(path)}\n')
-
-        tree_checksum = hashlib.sha256(
-            tree.getvalue().encode('utf8')
-        ).hexdigest()
-        image_path = self.db.image_path(tree_checksum)
+        image_id = tree_checksum(self.path)
+        image_path = self.db.image_path(image_id)
         if image_path.exists():
-            logger.warning('Image {tree_checksum} already exists')
+            logger.warning('Image {image_id} already exists')
             # TODO check the image's checksum, just to be safe
         else:
             self.path.rename(image_path)
-        return self.db.get_image(tree_checksum)
+        return self.db.get_image(image_id)
+
+
+class FsckResult:
+    def __init__(self):
+        self.errors = []
 
 
 class DB:
@@ -125,8 +138,23 @@ class DB:
 
     def iter_images(self):
         for path in self.images_path.iterdir():
+            if path.is_symlink():
+                continue
             yield Image(self, path.name)
 
     def iter_vms(self):
         for path in self.vms_path.iterdir():
             yield vms.VM(self, path.name)
+
+    def fsck(self):
+        result = FsckResult()
+
+        for image in self.iter_images():
+            for error in image.fsck():
+                result.errors.append(f'{image}: {error}')
+
+        for vm in self.iter_vms():
+            for error in vm.fsck():
+                result.errors.append(f'{vm}: {error}')
+
+        return result

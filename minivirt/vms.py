@@ -235,3 +235,7 @@ class VM:
             yield
         finally:
             self.kill(wait=True)
+
+    def fsck(self):
+        if not self.db.image_path(self.config['image']).is_dir():
+            yield f'missing image {self.image}'

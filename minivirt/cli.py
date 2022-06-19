@@ -1,6 +1,7 @@
 import logging
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 import click
@@ -135,6 +136,15 @@ def save(image):
 @click.argument('image')
 def load(image):
     db.load(image)
+
+
+@cli.command()
+def fsck():
+    result = db.fsck()
+    for message in result.errors:
+        logger.warning('fsck error: %s', message)
+    if result.errors:
+        sys.exit(1)
 
 
 cli.add_command(alpine.cli, name='alpine')
