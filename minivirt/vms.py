@@ -34,7 +34,7 @@ class VM:
             subprocess.check_call(
                 [
                     'qemu-img', 'create', '-q',
-                    '-b', image.path / 'disk.qcow2',
+                    '-b', vm.relative_path(image.path / 'disk.qcow2'),
                     '-F', 'qcow2',
                     '-f', 'qcow2',
                     vm.disk_path,
@@ -60,6 +60,9 @@ class VM:
         self.serial_path = self.path / 'serial'
         self.disk_path = self.path / 'disk.qcow2'
         self.ssh_config_path = self.path / 'ssh-config'
+
+    def relative_path(self, path):
+        return Path(os.path.relpath(path, self.path))
 
     def __repr__(self):
         return f'<VM {self.name!r}>'
