@@ -1,17 +1,11 @@
 import logging
 import shlex
-import subprocess
 
 import click
 
 from minivirt.vms import VM
 
 logger = logging.getLogger(__name__)
-
-
-def ssh(vm, command):
-    logger.info('Running %r', command)
-    subprocess.check_call(['ssh', f'{vm.name}.miv', command])
 
 
 @click.group()
@@ -38,9 +32,9 @@ def build(image, name):
 
     vm = VM.create(db, name, db.get_image(image), memory=1024)
     with vm.run(wait_for_ssh=30):
-        ssh(vm, f'sed -i {shlex.quote(sed_rule)} /etc/apk/repositories')
-        ssh(vm, f'apk add {" ".join(packages)}')
-        ssh(vm, 'poweroff')
+        vm.ssh(f'sed -i {shlex.quote(sed_rule)} /etc/apk/repositories')
+        vm.ssh(f'apk add {" ".join(packages)}')
+        vm.ssh('poweroff')
         vm.wait()
 
 
@@ -51,11 +45,11 @@ def testsuite(name):
 
     vm = db.get_vm(name)
     with vm.run(wait_for_ssh=30, snapshot=True):
-        ssh(vm, 'git clone https://github.com/mgax/minivirt')
-        ssh(vm, 'pip3 install ./minivirt')
-        ssh(vm, 'pip3 install pytest')
-        ssh(vm, 'miv doctor')
-        ssh(vm, 'cd minivirt; pytest -vv')
+        vm.ssh('git clone https://github.com/mgax/minivirt')
+        vm.ssh('pip3 install ./minivirt')
+        vm.ssh('pip3 install pytest')
+        vm.ssh('miv doctor')
+        vm.ssh('cd minivirt; pytest -vv')
 
 
 @cli.command()
@@ -77,15 +71,15 @@ def install_github_runner(name):
 
     vm = db.get_vm(name)
     with vm.run(wait_for_ssh=30):
-        ssh(vm, f'apk add {" ".join(packages)}')
-        ssh(vm, f'sed -i {shlex.quote(sed_rule)} /etc/passwd')
-        ssh(vm, 'curl -LOs https://dot.net/v1/dotnet-install.sh')
-        ssh(vm, 'bash dotnet-install.sh -c 6.0')
-        ssh(vm, 'ln -s /root/.dotnet/dotnet /usr/local/bin')
-        ssh(vm, 'mkdir actions-runner')
-        ssh(vm, f'cd actions-runner'
-                f' && curl -Ls {github_runner_url} | tar xz')
-        ssh(vm, 'poweroff')
+        vm.ssh(f'apk add {" ".join(packages)}')
+        vm.ssh(f'sed -i {shlex.quote(sed_rule)} /etc/passwd')
+        vm.ssh('curl -LOs https://dot.net/v1/dotnet-install.sh')
+        vm.ssh('bash dotnet-install.sh -c 6.0')
+        vm.ssh('ln -s /root/.dotnet/dotnet /usr/local/bin')
+        vm.ssh('mkdir actions-runner')
+        vm.ssh(f'cd actions-runner'
+               f' && curl -Ls {github_runner_url} | tar xz')
+        vm.ssh('poweroff')
         vm.wait()
 
 
@@ -98,13 +92,12 @@ def setup_github_runner(name, repo, token):
 
     vm = db.get_vm(name)
     with vm.run(wait_for_ssh=30):
-        ssh(
-            vm,
+        vm.ssh(
             f'cd actions-runner'
             f' && ./bin/Runner.Listener configure'
             f'      --url {repo}'
             f'      --token {token}'
             f'      --unattended'
         )
-        ssh(vm, 'poweroff')
+        vm.ssh('poweroff')
         vm.wait()

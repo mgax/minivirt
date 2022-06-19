@@ -89,6 +89,14 @@ def console(name):
 
 
 @cli.command()
+@click.argument('name')
+@click.argument('args', nargs=-1)
+def ssh(name, args):
+    vm = db.get_vm(name)
+    vm.ssh(*args)
+
+
+@cli.command()
 @click.option('-a', '--all', 'all_', is_flag=True)
 def ps(all_):
     for vm in db.iter_vms():

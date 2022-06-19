@@ -3,7 +3,7 @@ import tempfile
 from minivirt.vms import VM
 
 
-def test_save_restore_run(db, ssh):
+def test_save_restore_run(db):
     db.get_vm('foo').destroy()
     db.remove_image('newly-loaded-image')
 
@@ -17,7 +17,7 @@ def test_save_restore_run(db, ssh):
             db, 'foo', db.get_image('newly-loaded-image'), memory=512
         )
         with vm.run(wait_for_ssh=30):
-            out = ssh(vm, 'hostname')
+            out = vm.ssh('hostname', capture=True)
         assert out.strip() == b'alpine'
 
     finally:
@@ -25,12 +25,12 @@ def test_save_restore_run(db, ssh):
         db.remove_image('newly-loaded-image')
 
 
-def test_commit_run(db, vm, ssh):
+def test_commit_run(db, vm):
     db.get_vm('bar').destroy()
     db.remove_image('newly-committed-image')
 
     with vm.run(wait_for_ssh=30):
-        ssh(vm, 'touch marker-file && poweroff')
+        vm.ssh('touch marker-file && poweroff')
 
     vm.commit('newly-committed-image')
     db.remove_image('base')
@@ -40,7 +40,7 @@ def test_commit_run(db, vm, ssh):
             db, 'bar', db.get_image('newly-committed-image'), memory=512
         )
         with bar.run(wait_for_ssh=30):
-            out = ssh(bar, 'ls')
+            out = bar.ssh('ls', capture=True)
         assert out.strip() == b'marker-file'
 
     finally:

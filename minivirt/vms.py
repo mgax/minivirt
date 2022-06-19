@@ -59,6 +59,7 @@ class VM:
         self.qmp_path = self.path / 'qmp'
         self.serial_path = self.path / 'serial'
         self.disk_path = self.path / 'disk.qcow2'
+        self.ssh_config_path = self.path / 'ssh-config'
 
     def __repr__(self):
         return f'<VM {self.name!r}>'
@@ -103,8 +104,7 @@ class VM:
         shutil.copy(VAGRANT_PRIVATE_KEY_PATH, ssh_private_key_path)
         ssh_private_key_path.chmod(0o600)
 
-        ssh_config_path = self.path / 'ssh-config'
-        with ssh_config_path.open('w') as f:
+        with self.ssh_config_path.open('w') as f:
             f.write(
                 dedent(
                     f'''\
@@ -119,7 +119,7 @@ class VM:
                 )
             )
 
-        ssh_config_path.chmod(0o644)
+        self.ssh_config_path.chmod(0o644)
 
         qemu_cmd = [
             *qemu.command_prefix,
@@ -205,6 +205,11 @@ class VM:
                 f'unix-connect:{self.serial_path}',
             ],
         )
+
+    def ssh(self, *args, capture=False):
+        fn = subprocess.check_output if capture else subprocess.check_call
+        hostname = f'{self.name}.miv'
+        return fn(['ssh', '-F', self.ssh_config_path, hostname, *args])
 
     def commit(self, image):
         image_path = self.db.image_path(image)
