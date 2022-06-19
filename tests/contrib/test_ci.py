@@ -10,7 +10,7 @@ def test_build(db, monkeypatch):
     monkeypatch.setattr('minivirt.cli.db', db)
     runner = CliRunner()
 
-    res1 = runner.invoke(cli, ['ci', 'build', 'base', 'foo'])
+    res1 = runner.invoke(cli, ['ci', 'build', 'base', 'foo', '--memory=512'])
     assert res1.exit_code == 0
 
     foo = db.get_vm('foo')

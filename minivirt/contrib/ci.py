@@ -21,7 +21,8 @@ def cli():
 @cli.command()
 @click.argument('image')
 @click.argument('name')
-def build(image, name):
+@click.option('--memory', default=1024)
+def build(image, name, memory):
     from minivirt.cli import db
 
     packages = [
@@ -40,7 +41,7 @@ def build(image, name):
     apk_sed = r's|# \(http://dl-cdn.alpinelinux.org/alpine/.*/community\)|\1|'
     login_shell_sed = r's|\(root:x:0:0:root:/root:\)/bin/ash|\1/bin/bash|'
 
-    vm = VM.create(db, name, db.get_image(image), memory=1024)
+    vm = VM.create(db, name, db.get_image(image), memory=memory)
     with vm.run(wait_for_ssh=30):
         vm.ssh(f'sed -i {shlex.quote(apk_sed)} /etc/apk/repositories')
         vm.ssh(f'apk add {" ".join(packages)}')
