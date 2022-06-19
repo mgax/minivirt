@@ -37,7 +37,13 @@ class Image:
             return self.path / filename
 
     def tag(self, name):
-        self.db.image_path(name).symlink_to(self.name)
+        tag_path = self.db.image_path(name)
+        target = Path(self.name)
+        if tag_path.is_symlink():
+            if tag_path.readlink() == target:
+                return
+            # TODO replace the tag and maybe display a warning
+        tag_path.symlink_to(target)
 
     def fsck(self):
         if tree_checksum(self.path) != self.name:
