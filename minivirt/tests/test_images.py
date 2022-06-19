@@ -4,7 +4,7 @@ from minivirt.vms import VM
 
 
 def test_save_restore_run(db, ssh):
-    VM.open(db, 'foo').destroy()
+    db.get_vm('foo').destroy()
     db.remove_image('newly-loaded-image')
 
     with tempfile.TemporaryFile() as f:
@@ -21,12 +21,12 @@ def test_save_restore_run(db, ssh):
         assert out.strip() == b'alpine'
 
     finally:
-        VM.open(db, 'foo').destroy()
+        db.get_vm('foo').destroy()
         db.remove_image('newly-loaded-image')
 
 
 def test_commit_run(db, vm, ssh):
-    VM.open(db, 'bar').destroy()
+    db.get_vm('bar').destroy()
     db.remove_image('newly-committed-image')
 
     with vm.run(wait_for_ssh=30):
@@ -44,5 +44,5 @@ def test_commit_run(db, vm, ssh):
         assert out.strip() == b'marker-file'
 
     finally:
-        VM.open(db, 'bar').destroy()
+        db.get_vm('bar').destroy()
         db.remove_image('newly-committed-image')

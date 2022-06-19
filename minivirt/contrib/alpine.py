@@ -196,7 +196,7 @@ def download(version, name):
 def bootstrap(name, display):
     from minivirt.cli import db
 
-    vm = VM.open(db, name)
+    vm = db.get_vm(name)
     Bootstrap(vm).bootstrap(display)
 
 

@@ -49,7 +49,7 @@ def build(image, name):
 def testsuite(name):
     from minivirt.cli import db
 
-    vm = VM.open(db, name)
+    vm = db.get_vm(name)
     with vm.run(wait_for_ssh=30, snapshot=True):
         ssh(vm, 'git clone https://github.com/mgax/minivirt')
         ssh(vm, 'pip3 install ./minivirt')
@@ -75,7 +75,7 @@ def install_github_runner(name):
         'v2.293.0/actions-runner-linux-x64-2.293.0.tar.gz'
     )
 
-    vm = VM.open(db, name)
+    vm = db.get_vm(name)
     with vm.run(wait_for_ssh=30):
         ssh(vm, f'apk add {" ".join(packages)}')
         ssh(vm, f'sed -i {shlex.quote(sed_rule)} /etc/passwd')
@@ -96,7 +96,7 @@ def install_github_runner(name):
 def setup_github_runner(name, repo, token):
     from minivirt.cli import db
 
-    vm = VM.open(db, name)
+    vm = db.get_vm(name)
     with vm.run(wait_for_ssh=30):
         ssh(
             vm,

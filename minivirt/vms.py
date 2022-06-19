@@ -51,10 +51,6 @@ class VM:
 
         return vm
 
-    @classmethod
-    def open(cls, db, name):
-        return cls(db, name)
-
     def __init__(self, db, name):
         self.db = db
         self.name = name

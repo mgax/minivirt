@@ -63,28 +63,28 @@ def create(image, name, **kwargs):
 @click.option('--snapshot', is_flag=True)
 @click.option('--wait-for-ssh', type=int, default=None)
 def start(name, **kwargs):
-    vm = VM.open(db, name)
+    vm = db.get_vm(name)
     vm.start(**kwargs)
 
 
 @cli.command()
 @click.argument('name')
 def kill(name):
-    vm = VM.open(db, name)
+    vm = db.get_vm(name)
     vm.kill()
 
 
 @cli.command()
 @click.argument('name')
 def destroy(name):
-    vm = VM.open(db, name)
+    vm = db.get_vm(name)
     vm.destroy()
 
 
 @cli.command()
 @click.argument('name')
 def console(name):
-    vm = VM.open(db, name)
+    vm = db.get_vm(name)
     vm.console()
 
 
@@ -113,7 +113,7 @@ def images():
 @click.argument('name')
 @click.argument('image')
 def commit(name, image):
-    vm = VM.open(db, name)
+    vm = db.get_vm(name)
     vm.commit(image)
 
 

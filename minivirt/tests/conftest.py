@@ -42,7 +42,7 @@ def db(base_image_path):
 
 @pytest.fixture
 def vm(db):
-    VM.open(db, 'foo').destroy()
+    db.get_vm('foo').destroy()
     vm = VM.create(db, 'foo', db.get_image('base'), memory=512)
     try:
         yield vm

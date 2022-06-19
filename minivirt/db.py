@@ -49,6 +49,9 @@ class DB:
     def vm_path(self, name):
         return self.vms_path / name
 
+    def get_vm(self, name):
+        return vms.VM(self, name)
+
     def save(self, name, stdout=sys.stdout):
         subprocess.check_call(
             'tar c *', shell=True, cwd=self.image_path(name), stdout=stdout
