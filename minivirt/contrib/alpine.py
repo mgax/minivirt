@@ -207,5 +207,5 @@ def bootstrap(name, display):
 @click.option('--display', is_flag=True)
 def install(image, name, disk, display):
     from minivirt.cli import db
-    vm = VM.create(db, name, db.get_image(image), disk=disk)
+    vm = VM.create(db, name, db.get_image(image), memory='512', disk=disk)
     Bootstrap(vm).bootstrap(display)
