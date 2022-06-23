@@ -115,7 +115,11 @@ def images():
     for image in db.iter_images():
         du_output = subprocess.check_output(['du', '-sh', image.path])
         size = du_output.decode('utf8').split()[0]
-        print(image.name, size)
+        print(
+            image.name[:8],
+            size,
+            ' '.join(tag.name for tag in image.iter_tags()),
+        )
 
 
 @cli.command()

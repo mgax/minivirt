@@ -47,6 +47,11 @@ class Image:
             # TODO replace the tag and maybe display a warning
         tag_path.symlink_to(target)
 
+    def iter_tags(self):
+        for tag in self.db.iter_tags():
+            if tag.image_id == self.name:
+                yield tag
+
     def fsck(self):
         if tree_checksum(self.path) != self.name:
             yield 'invalid checksum'
