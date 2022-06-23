@@ -145,6 +145,7 @@ def fsck():
         logger.warning('fsck error: %s', message)
     if result.errors:
         sys.exit(1)
+    print('🩺👌')
 
 
 cli.add_command(alpine.cli, name='alpine')
