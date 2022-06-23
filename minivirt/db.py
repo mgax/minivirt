@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import re
 import shutil
 import subprocess
 import sys
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class Image:
     def __init__(self, db, name):
+        assert re.match(r'^[0-9a-f]{64}$', name)
         self.db = db
         self.name = name
         self.path = db.image_path(name)
@@ -111,6 +113,9 @@ class DB:
         return self.images_path / filename
 
     def get_image(self, name):
+        path = self.images_path / name
+        if path.is_symlink():
+            name = path.resolve().name
         return Image(self, name)
 
     def remove_image(self, name):

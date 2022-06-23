@@ -215,17 +215,18 @@ class VM:
         return fn(['ssh', '-F', self.ssh_config_path, hostname, *args])
 
     def commit(self, image):
-        image_path = self.db.image_path(image)
-        image_path.mkdir(parents=True)
-        config = {
-            'disk': True,
-        }
-        with (image_path / 'config.json').open('w') as f:
-            json.dump(config, f, indent=2)
-        subprocess.check_call([
-            'qemu-img', 'convert', '-O', 'qcow2',
-            self.disk_path, image_path / self.disk_path.name
-        ])
+        with self.db.create_image() as creator:
+            config = {
+                'disk': True,
+            }
+            with (creator.path / 'config.json').open('w') as f:
+                json.dump(config, f, indent=2)
+            subprocess.check_call([
+                'qemu-img', 'convert', '-O', 'qcow2',
+                self.disk_path, creator.path / self.disk_path.name
+            ])
+
+        creator.image.tag(image)
 
     @contextmanager
     def run(self, **kwargs):
