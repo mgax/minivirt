@@ -173,21 +173,23 @@ def download(version, name):
         f'https://dl-cdn.alpinelinux.org/alpine/v{minor}/releases/{arch}/'
         f'alpine-virt-{version}-{arch}.iso'
     )
-    image_path = db.image_path(name or f'alpine-{version}-{arch}-iso')
-    assert not image_path.exists()
-    image_path.mkdir(parents=True)
+    if name is None:
+        name = f'alpine-{version}-{arch}-iso'
 
-    filename = Path(iso_url).name
-    logger.info('Downloading %s ...', filename)
-    iso_path = image_path / filename
-    subprocess.check_call(['curl', '-L', iso_url, '-o', iso_path])
+    with db.create_image() as creator:
+        filename = Path(iso_url).name
+        logger.info('Downloading %s ...', filename)
+        iso_path = creator.path / filename
+        subprocess.check_call(['curl', '-L', iso_url, '-o', iso_path])
 
-    config = {
-        'iso': filename,
-    }
-    config_path = image_path / 'config.json'
-    with config_path.open('w') as f:
-        json.dump(config, f, indent=2)
+        config = {
+            'iso': filename,
+        }
+        config_path = creator.path / 'config.json'
+        with config_path.open('w') as f:
+            json.dump(config, f, indent=2)
+
+    creator.image.tag(name)
 
 
 @cli.command()
