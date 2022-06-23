@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)
 
 class Image:
     def __init__(self, db, name):
-        assert re.match(r'^[0-9a-f]{64}$', name)
         self.db = db
         self.name = name
+        assert re.match(r'^[0-9a-f]{64}$', name)
         self.path = db.image_path(name)
         self.config_path = self.path / 'config.json'
 
@@ -50,6 +50,27 @@ class Image:
     def fsck(self):
         if tree_checksum(self.path) != self.name:
             yield 'invalid checksum'
+
+
+class Tag:
+    def __init__(self, db, name):
+        self.db = db
+        self.name = name
+
+    @cached_property
+    def path(self):
+        return self.db.images_path / self.name
+
+    @cached_property
+    def image_id(self):
+        return self.path.resolve().name
+
+    def delete(self):
+        self.path.unlink()
+
+    def fsck(self):
+        if not (self.db.images_path / self.image_id).exists():
+            yield 'target image does not exist'
 
 
 def file_chunks(path, chunk_size=65536):
@@ -126,6 +147,9 @@ class DB:
     def create_image(self):
         return ImageCreator(self).ctx()
 
+    def get_tag(self, name):
+        return Tag(self, name)
+
     def vm_path(self, name):
         return self.vms_path / name
 
@@ -153,6 +177,12 @@ class DB:
                 continue
             yield Image(self, path.name)
 
+    def iter_tags(self):
+        for path in self.images_path.iterdir():
+            if not path.is_symlink():
+                continue
+            yield Tag(self, path.name)
+
     def iter_vms(self):
         for path in self.vms_path.iterdir():
             yield vms.VM(self, path.name)
@@ -163,6 +193,10 @@ class DB:
         for image in self.iter_images():
             for error in image.fsck():
                 result.errors.append(f'{image}: {error}')
+
+        for tag in self.iter_tags():
+            for error in tag.fsck():
+                result.errors.append(f'{tag}: {error}')
 
         for vm in self.iter_vms():
             for error in vm.fsck():
