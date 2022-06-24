@@ -152,6 +152,15 @@ def fsck():
     print('🩺👌')
 
 
+@cli.command()
+@click.argument('remote')
+@click.argument('ref')
+@click.argument('remote_tag')
+def push(remote, ref, remote_tag):
+    image = db.get_image(ref)
+    db.remotes.get(remote).push(image, remote_tag)
+
+
 cli.add_command(alpine.cli, name='alpine')
 cli.add_command(ci.cli, name='ci')
 cli.add_command(remotes.cli, name='remote')
