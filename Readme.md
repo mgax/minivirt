@@ -22,8 +22,9 @@ miv doctor
 ## Usage
 
 ```shell
-miv alpine download 3.15.4 alpine-iso
-miv -v alpine install alpine-iso foo 10G
+miv remote add default https://f003.backblazeb2.com/file/minivirt
+miv pull default 'alpine-3.15.4-{arch}' alpine
+miv create alpine foo
 miv start foo --display
 # ... interact with the VM's display ...
 miv destroy foo
