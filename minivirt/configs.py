@@ -15,6 +15,7 @@ class Config:
             return {}
 
     def save(self):
+        self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.path.open('w') as f:
             json.dump(self.content, f, indent=2)
 
