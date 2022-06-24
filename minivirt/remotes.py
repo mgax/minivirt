@@ -3,6 +3,7 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
+from urllib.request import urlopen
 
 import boto3
 import botocore.exceptions
@@ -81,6 +82,22 @@ class Remote:
                 f.write(image.name)
 
             bucket.upload(tag_path, tag_key)
+
+    def pull(self, tag, local_tag):
+        with urlopen(f'{self.url}/tags/{tag}') as f:
+            image_id = f.read().decode('utf8')
+
+        if self.db.image_path(image_id).exists():
+            logger.info('Image %s already exists', image_id)
+            self.db.get_image(image_id).tag(local_tag)
+            return
+
+        image_url = f'{self.url}/images/{image_id}.tgz'
+        logger.info('Downloading %s from %s ...', local_tag, image_url)
+        with subprocess.Popen(
+            ['curl', '-s', image_url], stdout=subprocess.PIPE
+        ) as p:
+            self.db.load(local_tag, stdin=p.stdout, gzip=True)
 
 
 @click.group()

@@ -161,6 +161,14 @@ def push(remote, ref, remote_tag):
     db.remotes.get(remote).push(image, remote_tag)
 
 
+@cli.command()
+@click.argument('remote')
+@click.argument('remote_tag')
+@click.argument('tag')
+def pull(remote, remote_tag, tag):
+    db.remotes.get(remote).pull(remote_tag.format(arch=qemu.arch), tag)
+
+
 cli.add_command(alpine.cli, name='alpine')
 cli.add_command(ci.cli, name='ci')
 cli.add_command(remotes.cli, name='remote')
