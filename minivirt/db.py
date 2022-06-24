@@ -12,6 +12,7 @@ from io import StringIO
 from pathlib import Path
 
 from . import vms
+from .remotes import Remotes
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +135,7 @@ class DB:
         self.path = path
         self.images_path = self.path / 'images'
         self.vms_path = self.path / 'vms'
+        self.remotes = Remotes(self)
 
     def image_path(self, filename):
         return self.images_path / filename

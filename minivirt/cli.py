@@ -6,7 +6,7 @@ from pathlib import Path
 
 import click
 
-from . import qemu
+from . import qemu, remotes
 from .contrib import alpine, ci
 from .db import DB
 from .vms import VM
@@ -154,3 +154,4 @@ def fsck():
 
 cli.add_command(alpine.cli, name='alpine')
 cli.add_command(ci.cli, name='ci')
+cli.add_command(remotes.cli, name='remote')
