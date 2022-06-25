@@ -84,9 +84,19 @@ ssh foo.miv poweroff
 
 ## Development
 
-To run the test suite:
-
-```shell
-.venv/bin/pip3 install -r requirements/dev.txt
-.venv/bin/pytest
-```
+* Create a virtualenv so you don't interfere with gobally-installed packages:
+    ```shell
+    python3 -m venv .venv
+    source .venv/bin/activate
+    ```
+* Install the repo in edit mode and development dependencies:
+    ```shell
+    pip3 install -e .
+    pip3 install pytest
+    ```
+* Run the test suite:
+    ```shell
+    pytest
+    # If you're not in a hurry, run the slow tests too:
+    pytest --runslow
+    ```
