@@ -22,6 +22,15 @@ The default VM is based on [Alpine Linux](https://alpinelinux.org/), which is ti
 
 ## Installation
 
+### Requirements
+
+MiniVirt runs on:
+
+* Linux with x86_64 processor and hardware virutalization enabled.
+* Mac OS with Apple M1 processor. Does not support nested virutalization.
+
+### Dependencies
+
 You'll need [qemu][], [python3][] and [socat][] installed.
 
 [qemu]: https://www.qemu.org/
@@ -32,12 +41,14 @@ You'll need [qemu][], [python3][] and [socat][] installed.
 * Debian: `apt install qemu-system-x86 qemu-utils socat`
 * Alpine: `apk add py3-pip qemu qemu-system-x86_64 qemu-img socat tar git`
 
-Then, install _MiniVirt_ and run a checkup:
+### Instructions
 
 ```shell
 pip3 install git+https://github.com/mgax/minivirt
-miv doctor
+miv doctor  # run a diagnostic check
 ```
+
+The images and VMs will be stored in `~/.cache/minivirt/`.
 
 ## Usage
 
@@ -112,6 +123,12 @@ Later, load the image:
 
 ```shell
 zcat ~/bar.tgz | miv load bar
+```
+
+If you get unexpected errors, run a database check:
+
+```shell
+miv fsck
 ```
 
 ## Development
