@@ -222,3 +222,7 @@ startx
 To make the screen bigger, right-click on the desktop, hover on _Applications_, then _Settings_, and click _Display_. Select another resolution like "1440x900" and click "apply".
 
 WHen you're done, run `poweroff` in a shell, and the VM will shut down cleanly.
+
+## Get in touch
+
+[Discord server](https://discord.gg/P72AGcEWHZ)
