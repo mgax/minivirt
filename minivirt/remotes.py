@@ -95,7 +95,7 @@ class Remote:
         image_url = f'{self.url}/images/{image_id}.tgz'
         logger.info('Downloading %s from %s ...', local_tag, image_url)
         with subprocess.Popen(
-            ['curl', '-s', image_url], stdout=subprocess.PIPE
+            ['curl', image_url], stdout=subprocess.PIPE
         ) as p:
             self.db.load(local_tag, stdin=p.stdout, gzip=True)
 
