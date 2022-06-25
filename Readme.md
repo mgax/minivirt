@@ -43,10 +43,48 @@ miv doctor
 
 ```shell
 miv remote add default https://f003.backblazeb2.com/file/minivirt
-miv pull default 'alpine-3.15.4-{arch}' alpine
+miv pull default 'alpine-3.15.4-{arch}' alpine  # '{arch}' is automatically replaced with your architecture.
 miv create alpine foo
 miv start foo --display
-# ... interact with the VM's display ...
+# ... interact with the VM ...
+miv destroy foo
+```
+
+### SSH
+
+Add these lines to your ssh config (`~/.ssh/config`):
+
+```ssh-config
+Host *.miv
+  Include ~/.cache/minivirt/*/ssh-config
+```
+
+Start the VM, then log into it using SSH:
+
+```shell
+miv start foo --daemon --wait-for-ssh=30
+ssh foo.miv
+# ... do your thing ...
+ssh foo.miv poweroff
+```
+
+### VMs
+
+Show VMs in the database:
+
+```shell
+miv ps -a
+```
+
+Forcibly stop a VM:
+
+```shell
+miv kill foo
+```
+
+Delete a VM and all its files:
+
+```shell
 miv destroy foo
 ```
 
@@ -74,32 +112,6 @@ Later, load the image:
 
 ```shell
 zcat ~/bar.tgz | miv load bar
-```
-
-### VMs
-
-Show VMs in the database:
-
-```shell
-miv ps -a
-```
-
-### SSH
-
-Add these lines to your ssh config (`~/.ssh/config`):
-
-```ssh-config
-Host *.miv
-  Include ~/.cache/minivirt/*/ssh-config
-```
-
-Start the VM, then log into it using SSH:
-
-```shell
-miv start foo --daemon --wait-for-ssh=30
-ssh foo.miv
-# ... do your thing ...
-ssh foo.miv poweroff
 ```
 
 ## Development
