@@ -182,3 +182,26 @@ To start the runner, boot up the VM, then call `run.sh` in foreground:
 miv start actions-runner --daemon --wait-for-ssh=30
 ssh actions-runner.miv RUNNER_ALLOW_RUNASROOT=yes /root/actions-runner/run.sh
 ```
+
+### Desktop environment
+
+It's easy to install a graphic environment in Alpine:
+
+```shell
+miv remote add default https://f003.backblazeb2.com/file/minivirt
+miv pull default 'alpine-3.15.4-{arch}' alpine  # '{arch}' is automatically replaced with your architecture.
+miv create alpine foo
+miv start foo --display
+```
+
+Then, log in as `root`, and run:
+
+```shell
+setup-xorg-base
+apk add xfce4 xfce4-terminal dbus
+startx
+```
+
+To make the screen bigger, right-click on the desktop, hover on _Applications_, then _Settings_, and click _Display_. Select another resolution like "1440x900" and click "apply".
+
+WHen you're done, run `poweroff` in a shell, and the VM will shut down cleanly.
