@@ -179,19 +179,19 @@ class DB:
         creator.image.tag(name)
 
     def iter_images(self):
-        for path in self.images_path.iterdir():
+        for path in self.images_path.glob('*'):
             if path.is_symlink():
                 continue
             yield Image(self, path.name)
 
     def iter_tags(self):
-        for path in self.images_path.iterdir():
+        for path in self.images_path.glob('*'):
             if not path.is_symlink():
                 continue
             yield Tag(self, path.name)
 
     def iter_vms(self):
-        for path in self.vms_path.iterdir():
+        for path in self.vms_path.glob('*'):
             yield vms.VM(self, path.name)
 
     def fsck(self):
