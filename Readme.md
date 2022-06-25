@@ -10,7 +10,7 @@ Because VMs should be as easy as containers.
 * Host your own GitHub Actions runner, so you don't pay for actions minutes, and are in control of the runtime environment. This is how the MiniVirt CI is hosted because it needs `/dev/kvm`.
 * Run a test suite for Ansible playbooks.
 
-The default VM is based on Alpine Linux, which is tiny (50MB compressed disk image) and fast (boots to SSH in under 3 seconds).
+The default VM is based on [Alpine Linux](https://alpinelinux.org/), which is tiny (50MB compressed disk image) and fast (boots to SSH in under 3 seconds).
 
 ### So why not use containers instead?
 
