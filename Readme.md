@@ -1,5 +1,25 @@
 # MiniVirt – lightweight virtual machine manager
 
+## Motivation
+
+Because VMs should be as easy as containers.
+
+### Neat things you can do with MiniVirt
+
+* Run a throwaway desktop environment.
+* Host your own GitHub Actions runner, so you don't pay for actions minutes, and are in control of the runtime environment. This is how the MiniVirt CI is hosted because it needs `/dev/kvm`.
+* Run a test suite for Ansible playbooks.
+
+The default VM is based on Alpine Linux, which is tiny (50MB compressed disk image) and fast (boots to SSH in under 3 seconds).
+
+### So why not use containers instead?
+
+* Features: you don't have control of the kernel so you can't e.g. mount filesystems or load kernel modules.
+* Desktop: containers are meant to run headless. With a VM, you can use its emulated display to run a graphic environment.
+* Isolation: the container [is not a security boundary](https://blog.aquasec.com/container-isolation).
+* Nesting: it's possible to nest containers, but it involves giving the parent container elevated permissions. Nesting VMs maintains isolation.
+* Diversity: run any operating system that you can install from an ISO image.
+
 ## Installation
 
 You'll need [qemu][], [python3][] and [socat][] installed.
