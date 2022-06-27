@@ -87,7 +87,15 @@ class VM:
 
     @property
     def is_running(self):
-        return self.qmp_path.exists()
+        if self.qmp_path.exists():
+            try:
+                self.connect_qmp()
+            except ConnectionRefusedError:
+                logger.warning('QEMU is gone for %s', self)
+            else:
+                return True
+
+        return False
 
     def start(
         self,
@@ -187,12 +195,19 @@ class VM:
         logger.info('%s has stopped.', self)
 
     def kill(self, wait=False):
-        if self.qmp_path.exists():
+        if self.is_running:
             logger.info('%s is running; killing via QMP ...', self)
             qmp = self.connect_qmp()
             qmp.quit()
             if wait:
                 self.wait()
+
+        self.cleanup()
+
+    def cleanup(self):
+        self.qmp_path.unlink(missing_ok=True)
+        self.serial_path.unlink(missing_ok=True)
+        self.ssh_config_path.unlink(missing_ok=True)
 
     def destroy(self):
         self.kill(wait=True)
