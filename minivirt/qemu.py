@@ -12,8 +12,9 @@ machine = subprocess.check_output(['uname', '-m']).decode('utf8').strip()
 if machine == 'arm64':
     firmware = '/opt/homebrew/share/qemu/edk2-aarch64-code.fd'
     arch = 'aarch64'
+    binary = 'qemu-system-aarch64'
     command_prefix = [
-        'qemu-system-aarch64',
+        binary,
         '-M', 'virt,highmem=off,accel=hvf',
         '-cpu', 'host',
         '-drive', f'if=pflash,format=raw,file={firmware},readonly=on',
@@ -21,14 +22,35 @@ if machine == 'arm64':
 
 elif machine == 'x86_64':
     arch = 'x86_64'
+    binary = 'qemu-system-x86_64'
     command_prefix = [
-        'qemu-system-x86_64',
+        binary,
         '-enable-kvm',
         '-cpu', 'host',
     ]
 
 else:
     raise RuntimeError(f'Unknown machine {machine!r}')
+
+
+def get_display_args():
+    out = subprocess.check_output([binary, '-display', 'help']).decode('utf8')
+    types = out.splitlines()[1:]
+
+    for display_type in ['cocoa', 'gtk', 'sdl']:
+        if display_type in types:
+            display_argument = f'{display_type},show-cursor=on'
+            break
+    else:
+        display_argument = 'default'
+
+    return [
+        '-device', 'virtio-gpu-pci',
+        '-display', display_argument,
+        '-device', 'qemu-xhci',
+        '-device', 'usb-kbd',
+        '-device', 'usb-tablet',
+    ]
 
 
 def doctor():

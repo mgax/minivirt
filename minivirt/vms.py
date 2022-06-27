@@ -142,13 +142,7 @@ class VM:
         ]
 
         if display:
-            qemu_cmd += [
-                '-device', 'virtio-gpu-pci',
-                '-display', 'default,show-cursor=on',
-                '-device', 'qemu-xhci',
-                '-device', 'usb-kbd',
-                '-device', 'usb-tablet',
-            ]
+            qemu_cmd += qemu.get_display_args()
 
         else:
             qemu_cmd += [
