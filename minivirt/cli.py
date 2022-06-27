@@ -9,6 +9,7 @@ import click
 from . import qemu, remotes
 from .contrib import alpine, ci
 from .db import DB
+from .exceptions import VmIsRunning
 from .vms import VM
 
 logger = logging.getLogger(__name__)
@@ -65,7 +66,10 @@ def create(image, name, **kwargs):
 @click.option('--wait-for-ssh', type=int, default=None)
 def start(name, **kwargs):
     vm = db.get_vm(name)
-    vm.start(**kwargs)
+    try:
+        vm.start(**kwargs)
+    except VmIsRunning:
+        raise click.ClickException(f'{vm} is already running')
 
 
 @cli.command()
