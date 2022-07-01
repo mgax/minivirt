@@ -1,3 +1,4 @@
+import fcntl
 import json
 import logging
 import socket
@@ -61,6 +62,11 @@ def doctor():
     assert subprocess.check_output(
         ['qemu-img', '--version']
     ).startswith(b'qemu-img version')
+
+    KVM_GET_API_VERSION = 0xae00
+    KVM_API_VERSION = 12
+    with open('/dev/kvm') as kvm:
+        assert fcntl.ioctl(kvm, KVM_GET_API_VERSION) == KVM_API_VERSION
 
 
 class QMP:
