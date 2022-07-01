@@ -14,6 +14,7 @@ if machine == 'arm64':
     firmware = '/opt/homebrew/share/qemu/edk2-aarch64-code.fd'
     arch = 'aarch64'
     binary = 'qemu-system-aarch64'
+    os_name = 'macos'
     command_prefix = [
         binary,
         '-M', 'virt,highmem=off,accel=hvf',
@@ -24,6 +25,7 @@ if machine == 'arm64':
 elif machine == 'x86_64':
     arch = 'x86_64'
     binary = 'qemu-system-x86_64'
+    os_name = 'linux'
     command_prefix = [
         binary,
         '-enable-kvm',
@@ -63,10 +65,11 @@ def doctor():
         ['qemu-img', '--version']
     ).startswith(b'qemu-img version')
 
-    KVM_GET_API_VERSION = 0xae00
-    KVM_API_VERSION = 12
-    with open('/dev/kvm') as kvm:
-        assert fcntl.ioctl(kvm, KVM_GET_API_VERSION) == KVM_API_VERSION
+    if os_name == 'linux':
+        KVM_GET_API_VERSION = 0xae00
+        KVM_API_VERSION = 12
+        with open('/dev/kvm') as kvm:
+            assert fcntl.ioctl(kvm, KVM_GET_API_VERSION) == KVM_API_VERSION
 
 
 class QMP:
