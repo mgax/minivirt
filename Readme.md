@@ -200,6 +200,32 @@ miv start actions-runner --daemon --wait-for-ssh=30
 ssh actions-runner.miv RUNNER_ALLOW_RUNASROOT=yes /root/actions-runner/run.sh
 ```
 
+### Systemd
+
+If you want to host an app in a VM, it's possible to set up a [systemd](https://systemd.io/) service. This command will generate a service [unit file](https://www.freedesktop.org/software/systemd/man/systemd.unit.html):
+
+```
+miv systemd vm-unit ci
+```
+
+Review the output and save it as `/etc/systemd/system/minivirt-ci.service`.
+
+Then, you can run the app as a foreground command. The stdout/stderr output of the app process will be logged by systemd.
+
+```
+miv systemd command-unit ci RUNNER_ALLOW_RUNASROOT=yes /root/actions-runner/run.sh
+```
+
+Review the output and save it as `/etc/systemd/system/minivirt-ci-runner.service`.
+
+Finally, start the systemd services:
+
+```shell
+sudo systemctl daemon-reload
+sudo systemctl enable --now minivirt-ci
+sudo systemctl enable --now minivirt-ci-runner
+```
+
 ### Desktop environment
 
 It's easy to install a graphic environment in Alpine:

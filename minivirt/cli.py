@@ -7,7 +7,7 @@ from pathlib import Path
 import click
 
 from . import qemu, remotes
-from .contrib import alpine, ci
+from .contrib import alpine, ci, systemd
 from .db import DB
 from .exceptions import VmExists, VmIsRunning
 from .vms import VM
@@ -180,3 +180,4 @@ def pull(remote, remote_tag, tag):
 cli.add_command(alpine.cli, name='alpine')
 cli.add_command(ci.cli, name='ci')
 cli.add_command(remotes.cli, name='remote')
+cli.add_command(systemd.cli, name='systemd')
