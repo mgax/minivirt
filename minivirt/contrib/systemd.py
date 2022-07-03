@@ -21,7 +21,7 @@ RemainAfterExit=yes
 User={uid}
 Group={gid}
 ExecStart={miv} start {name} --daemon --wait-for-ssh=30
-ExecStop={miv} kill {name}
+ExecStop={miv} stop {name}
 
 [Install]
 WantedBy=multi-user.target

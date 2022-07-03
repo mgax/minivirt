@@ -1,3 +1,9 @@
+def test_stop(vm):
+    with vm.run(wait_for_ssh=30):
+        vm.stop()
+        assert not vm.is_running
+
+
 def test_kill(vm):
     with vm.run(wait_for_ssh=30):
         assert vm.qmp_path.exists()

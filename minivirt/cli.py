@@ -78,6 +78,13 @@ def start(name, **kwargs):
 
 @cli.command()
 @click.argument('name')
+def stop(name):
+    vm = db.get_vm(name)
+    vm.stop()
+
+
+@cli.command()
+@click.argument('name')
 def kill(name):
     vm = db.get_vm(name)
     vm.kill()

@@ -87,10 +87,10 @@ Show VMs in the database:
 miv ps -a
 ```
 
-Forcibly stop a VM:
+Gracefully stop a VM by sending a poweroff request:
 
 ```shell
-miv kill foo
+miv stop foo
 ```
 
 Delete a VM and all its files:

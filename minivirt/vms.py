@@ -178,6 +178,14 @@ class VM:
         utils.waitfor(lambda: not self.qmp_path.exists(), timeout=timeout)
         logger.info('%s has stopped.', self)
 
+    def stop(self, wait=10):
+        qmp = self.connect_qmp()
+        qmp.poweroff()
+        try:
+            self.wait(wait)
+        except utils.WaitTimeout:
+            self.kill(wait=True)
+
     def kill(self, wait=False):
         if self.is_running:
             logger.info('%s is running; killing via QMP ...', self)

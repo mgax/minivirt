@@ -97,3 +97,6 @@ class QMP:
 
     def quit(self):
         self.send({'execute': 'quit'})
+
+    def poweroff(self):
+        self.send({'execute': 'system_powerdown'})
