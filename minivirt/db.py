@@ -43,9 +43,11 @@ class Image:
         tag_path = self.db.image_path(name)
         target = Path(self.name)
         if tag_path.is_symlink():
-            if tag_path.readlink() == target:
+            old_target = tag_path.readlink()
+            if old_target == target:
                 return
-            # TODO replace the tag and maybe display a warning
+            logger.warning('Overwriting tag %s -> %s', name, old_target.name)
+            tag_path.unlink()
         tag_path.symlink_to(target)
 
     def iter_tags(self):
@@ -118,7 +120,7 @@ class ImageCreator:
         image_id = tree_checksum(self.path)
         image_path = self.db.image_path(image_id)
         if image_path.exists():
-            logger.warning('Image {image_id} already exists')
+            logger.warning('Image %s already exists', image_id)
             # TODO check the image's checksum, just to be safe
         else:
             self.path.rename(image_path)

@@ -48,6 +48,15 @@ def test_commit_run(db, vm):
         db.remove_image('newly-committed-image')
 
 
+def test_commit_overwrite_tag(db, vm):
+    vm.commit('thing')
+    thing_id = db.get_image('thing').name
+    with vm.run(wait_for_ssh=30):
+        pass
+    vm.commit('thing')
+    assert db.get_image('thing').name != thing_id
+
+
 def test_checksum(db):
     with db.create_image() as creator:
         with (creator.path / 'foo').open('wb') as f:
