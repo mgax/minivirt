@@ -11,7 +11,7 @@ from textwrap import dedent
 
 from . import qemu, utils
 from .configs import Config
-from .exceptions import VmIsRunning
+from .exceptions import VmExists, VmIsRunning
 
 VAGRANT_PRIVATE_KEY_PATH = Path(__file__).parent / 'vagrant-private-key'
 
@@ -22,7 +22,8 @@ class VM:
     @classmethod
     def create(cls, db, name, image, memory, disk=None):
         vm = cls(db, name)
-        assert not vm.path.exists()
+        if vm.path.exists():
+            raise VmExists(name)
         vm.path.mkdir(parents=True)
 
         if disk:

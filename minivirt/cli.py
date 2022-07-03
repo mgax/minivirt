@@ -9,7 +9,7 @@ import click
 from . import qemu, remotes
 from .contrib import alpine, ci
 from .db import DB
-from .exceptions import VmIsRunning
+from .exceptions import VmExists, VmIsRunning
 from .vms import VM
 
 logger = logging.getLogger(__name__)
@@ -55,7 +55,11 @@ def doctor():
 @click.option('--memory', default=4096)
 @click.option('--disk', default=None)
 def create(image, name, **kwargs):
-    VM.create(db, name, db.get_image(image), **kwargs)
+    image = db.get_image(image)
+    try:
+        VM.create(db, name, image, **kwargs)
+    except VmExists:
+        raise click.ClickException(f'VM {name!r} already exists')
 
 
 @cli.command()
