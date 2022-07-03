@@ -10,6 +10,7 @@ from pathlib import Path
 from textwrap import dedent
 
 from . import qemu, utils
+from .configs import Config
 from .exceptions import VmIsRunning
 
 VAGRANT_PRIVATE_KEY_PATH = Path(__file__).parent / 'vagrant-private-key'
@@ -41,13 +42,12 @@ class VM:
                 ]
             )
 
-        vm._write_config(
-            dict(
-                image=image.name,
-                disk=disk,
-                memory=memory,
-            )
+        vm.config.update(
+            image=image.name,
+            disk=disk,
+            memory=memory,
         )
+        vm.config.save()
 
         return vm
 
@@ -55,7 +55,7 @@ class VM:
         self.db = db
         self.name = name
         self.path = db.vm_path(name)
-        self.config_path = self.path / 'config.json'
+        self.config = Config(self.path / 'config.json')
         self.qmp_path = self.path / 'qmp'
         self.serial_path = self.path / 'serial'
         self.disk_path = self.path / 'disk.qcow2'
@@ -66,17 +66,6 @@ class VM:
 
     def __repr__(self):
         return f'<VM {self.name!r}>'
-
-    def _write_config(self, config):
-        with self.config_path.open('w') as f:
-            json.dump(config, f, indent=2)
-
-        self.__dict__.pop('config', None)
-
-    @cached_property
-    def config(self):
-        with self.config_path.open() as f:
-            return json.load(f)
 
     @cached_property
     def image(self):

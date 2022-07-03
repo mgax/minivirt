@@ -27,5 +27,8 @@ class Config:
     def __setitem__(self, key, value):
         self.content[key] = value
 
+    def update(self, *args, **kwargs):
+        self.content.update(*args, **kwargs)
+
     def get(self, key, default):
         return self.content.get(key, default)
