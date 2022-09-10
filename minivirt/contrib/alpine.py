@@ -3,6 +3,7 @@ import logging
 import re
 import socket
 import subprocess
+import sys
 from pathlib import Path
 
 import click
@@ -34,7 +35,7 @@ class Console:
         logger.debug('Received %r', chunk)
         return chunk
 
-    def wait_for_pattern(self, pattern, limit=1000, timeout=30):
+    def wait_for_pattern(self, pattern, limit=1000, timeout=30, verbose=False):
         buffer = b''
 
         def look_for_pattern():
@@ -42,7 +43,11 @@ class Console:
 
             while not re.search(pattern, buffer, re.MULTILINE):
                 try:
-                    buffer += self.recv()
+                    chunk = self.recv()
+                    if verbose:
+                        sys.stdout.buffer.write(chunk)
+                        sys.stdout.buffer.flush()
+                    buffer += chunk
                     buffer = buffer[-limit:]
                 except OSError:
                     return
