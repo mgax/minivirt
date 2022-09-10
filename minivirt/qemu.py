@@ -17,7 +17,7 @@ if machine == 'arm64':
     os_name = 'macos'
     command_prefix = [
         binary,
-        '-M', 'virt,highmem=off,accel=hvf',
+        '-M', 'virt,accel=hvf',
         '-cpu', 'host',
         '-drive', f'if=pflash,format=raw,file={firmware},readonly=on',
     ]
