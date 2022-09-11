@@ -41,7 +41,7 @@ class Console:
         def look_for_pattern():
             nonlocal buffer
 
-            while not re.search(pattern, buffer, re.MULTILINE):
+            while not re.search(pattern, buffer, re.DOTALL):
                 try:
                     chunk = self.recv()
                     if verbose:
