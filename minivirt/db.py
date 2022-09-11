@@ -12,6 +12,7 @@ from io import StringIO
 from pathlib import Path
 
 from . import vms
+from .cache import Cache
 from .remotes import Remotes
 
 logger = logging.getLogger(__name__)
@@ -138,6 +139,12 @@ class DB:
         self.images_path = self.path / 'images'
         self.vms_path = self.path / 'vms'
         self.remotes = Remotes(self)
+
+    @cached_property
+    def cache(self):
+        cache_path = self.path / 'cache'
+        cache_path.mkdir(parents=True, exist_ok=True)
+        return Cache(cache_path)
 
     def image_path(self, filename):
         return self.images_path / filename

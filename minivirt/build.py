@@ -1,6 +1,6 @@
 import json
 import logging
-import subprocess
+import shutil
 from pathlib import Path
 
 import click
@@ -74,7 +74,8 @@ def build(db, recipe_path, verbose):
         filename = Path(iso_url).name
         logger.info('Downloading %s ...', filename)
         iso_path = creator.path / filename
-        subprocess.check_call(['curl', '-Ls', iso_url, '-o', iso_path])
+        download_path = db.cache.get(iso_url)
+        shutil.copy(download_path, iso_path)
 
         config = {
             'iso': filename,
