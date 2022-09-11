@@ -67,3 +67,12 @@ steps:
 
   - name: poweroff
     send: "poweroff\n"
+
+tests:
+  - name: Alpine release number
+    run: cat /etc/alpine-release
+    expect: '^3\.15'
+
+  - name: Kernel version
+    run: uname -a
+    expect: '^Linux alpine 5.15'
