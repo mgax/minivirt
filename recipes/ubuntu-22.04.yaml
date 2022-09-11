@@ -1,0 +1,59 @@
+memory: 512
+steps:
+  - uses: download
+    if_arch: 'aarch64'
+    with:
+      url: https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64.img
+      filename: disk.qcow2
+      attach:
+        type: disk
+
+  - uses: download
+    if_arch: 'x86_64'
+    with:
+      url: https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
+      filename: disk.qcow2
+      attach:
+        type: disk
+
+  - uses: cloud_init_iso
+    with:
+      filename: cloud-init.iso
+      content: |
+        #cloud-config
+        disable_root: false
+        ssh_authorized_keys:
+          - {vagrant_pubkey}
+        users:
+          - name: root
+            password: ''
+            ssh_authorized_keys:
+              - {vagrant_pubkey}
+      attach:
+        type: cdrom
+
+  - uses: run_with_serial_console
+    with:
+      steps:
+        - name: boot
+          wait: "\r\nubuntu login: "
+
+        - uses: wait_for_ssh
+
+        - uses: ssh
+          with:
+            run: poweroff
+            check: false
+
+  - uses: detach
+    with:
+      filename: cloud-init.iso
+
+tests:
+  - name: Ubuntu release number
+    run: cat /etc/issue
+    expect: '^Ubuntu 22\.04'
+
+  - name: Kernel version
+    run: uname -a
+    expect: '^Linux ubuntu 5.15'

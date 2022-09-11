@@ -21,6 +21,7 @@ if machine == 'arm64':
         '-cpu', 'host',
         '-drive', f'if=pflash,format=raw,file={firmware},readonly=on',
     ]
+    genisoimage_cmd = 'mkisofs'
 
 elif machine == 'x86_64':
     arch = 'x86_64'
@@ -31,6 +32,7 @@ elif machine == 'x86_64':
         '-enable-kvm',
         '-cpu', 'host',
     ]
+    genisoimage_cmd = 'genisoimage'
 
 else:
     raise RuntimeError(f'Unknown machine {machine!r}')

@@ -52,7 +52,7 @@ steps:
           wait: "\r\nalpine:~# "
 
         - name: sshd
-          send: "setup-sshd -k https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub openssh\n"
+          send: "setup-sshd -k {vagrant_pubkey_url} openssh\n"
           wait: "\r\nalpine:~# "
 
         - name: grub timeout

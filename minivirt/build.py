@@ -2,6 +2,7 @@ import logging
 import re
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 import click
@@ -16,10 +17,35 @@ logger = logging.getLogger(__name__)
 
 BUILD_STEPS = {}
 
+VAGRANT_PUBKEY_URL = (
+    'https://raw.githubusercontent.com'
+    '/hashicorp/vagrant/master/keys/vagrant.pub'
+)
+VAGRANT_PUBKEY = (
+    'ssh-rsa '
+    'AAAAB3NzaC1yc2EAAAABIwAAAQEA6NF8iallvQVp22WDkTkyrt'
+    'vp9eWW6A8YVr+kz4TjGYe7gHzIw+niNltGEFHzD8+v1I2YJ6oX'
+    'evct1YeS0o9HZyN1Q9qgCgzUFtdOKLv6IedplqoPkcmF0aYet2'
+    'PkEDo3MlTBckFXPITAMzF8dJSIFo9D8HfdOV0IAdx4O7PtixWK'
+    'n5y2hMNG0zQPyUecp4pzC6kivAIhyfHilFR61RGL+GPXQ2MWZW'
+    'FYbAGjyiYJnAmCP3NOTd0jMZEnDkbUvxhMmBYSdETk1rRgm+R4'
+    'LOzFUGaHqHDLKLX+FIPKcF96hrucXzcWyLbIbEgE98OHlnVYCz'
+    'RdK8jlqm8tehUc9c9WhQ== '
+    'vagrant insecure public key'
+)
+
 
 def build_step(func):
     BUILD_STEPS[func.__name__] = func
     return func
+
+
+def interpolate(string):
+    return string.format(
+        arch=qemu.arch,
+        vagrant_pubkey=VAGRANT_PUBKEY,
+        vagrant_pubkey_url=VAGRANT_PUBKEY_URL,
+    )
 
 
 def attach_to_vm(builder, filename, type):
@@ -38,12 +64,12 @@ def create_disk_image(builder, size, attach=None, filename='disk.qcow2'):
     subprocess.check_call(['qemu-img', 'create', '-f', 'qcow2', path, size])
 
     if attach:
-        attach_to_vm(builder, filename, **attach)
+        attach_to_vm(builder, filename=filename, **attach)
 
 
 @build_step
 def download(builder, url, attach=None, filename=None):
-    url = url.format(arch=qemu.arch)
+    url = interpolate(url)
     if filename is None:
         filename = url.split('/')[-1]
     path = builder.vm.path / filename
@@ -52,7 +78,31 @@ def download(builder, url, attach=None, filename=None):
     shutil.copy(cache_path, path)
 
     if attach:
-        attach_to_vm(builder, filename, **attach)
+        attach_to_vm(builder, filename=filename, **attach)
+
+
+@build_step
+def cloud_init_iso(builder, content, filename, attach=None):
+    content = interpolate(content)
+    with tempfile.TemporaryDirectory() as tmp:
+        user_data_path = Path(tmp) / 'user-data'
+        with user_data_path.open('w') as f:
+            f.write(content)
+
+        meta_data_path = Path(tmp) / 'meta-data'
+        meta_data_path.touch()
+
+        subprocess.check_call([
+            qemu.genisoimage_cmd,
+            '-quiet',
+            '-volid', 'cidata', '-joliet', '-rock',
+            '-output', builder.vm.path / filename,
+            user_data_path,
+            meta_data_path,
+        ])
+
+    if attach:
+        attach_to_vm(builder, filename=filename, **attach)
 
 
 @build_step
@@ -71,6 +121,20 @@ def detach(builder, filename):
         if item.get('filename') == filename:
             resources.remove(item)
             builder.vm.config.save()
+
+
+@build_step
+def wait_for_ssh(builder):
+    builder.vm.wait_for_ssh()
+
+
+@build_step
+def ssh(builder, run, check=True):
+    try:
+        builder.vm.ssh(run)
+    except subprocess.CalledProcessError:
+        if check:
+            raise
 
 
 class ImageTestError(RuntimeError):
@@ -96,6 +160,11 @@ class Builder:
         self.console.send(message)
 
     def build_step(self, step):
+        if 'if_arch' in step:
+            if qemu.arch != step['if_arch']:
+                logger.info('Skipping step: %r', step['uses'])
+                return
+
         func = BUILD_STEPS[step['uses']]
         func(self, **step['with'])
 
@@ -109,6 +178,11 @@ class Builder:
 
         if name:
             logger.info('Step: %r', name)
+
+        if 'uses' in step:
+            func = BUILD_STEPS[step['uses']]
+            func(self, **step.get('with', {}))
+            return
 
         if 'send' in step:
             self.send(step['send'].encode('utf8'))
@@ -186,7 +260,7 @@ def cli(recipe, tag, verbose):
         raise click.ClickException('Build test failed')
 
     if tag:
-        image.tag(tag.format(arch=qemu.arch))
+        image.tag(interpolate(tag))
 
     size = image.get_size()
     print(image.name[:8], size)  # noqa: T201

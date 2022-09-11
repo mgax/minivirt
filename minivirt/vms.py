@@ -132,7 +132,7 @@ class VM:
                 yield Disk(self.path / resource['filename'])
 
             elif resource['type'] == 'cdrom':
-                yield Disk(self.path / resource['filename'])
+                yield CDROM(self.path / resource['filename'])
 
             else:
                 raise RuntimeError('Unknown resource type')
@@ -165,6 +165,9 @@ class VM:
         logger.info('Starting %s ...', self.name)
 
         ssh_port = random.randrange(20000, 32000)
+
+        with (self.path / 'run.json').open('w') as f:
+            json.dump({'ssh_port': ssh_port}, f)
 
         ssh_private_key_path = self.path / 'ssh-private-key'
         shutil.copy(VAGRANT_PRIVATE_KEY_PATH, ssh_private_key_path)
@@ -235,6 +238,11 @@ class VM:
         logger.info('Waiting for %s to exit ...', self)
         utils.waitfor(lambda: not self.qmp_path.exists(), timeout=timeout)
         logger.info('%s has stopped.', self)
+
+    def wait_for_ssh(self, timeout=30):
+        with (self.path / 'run.json').open() as f:
+            ssh_port = json.load(f)['ssh_port']
+        utils.wait_for_ssh(ssh_port, timeout)
 
     def stop(self, wait=10):
         qmp = self.connect_qmp()
