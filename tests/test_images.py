@@ -32,7 +32,7 @@ def test_commit_run(db, vm):
     with vm.run(wait_for_ssh=30):
         vm.ssh('touch marker-file && poweroff')
 
-    vm.commit('newly-committed-image')
+    vm.commit().tag('newly-committed-image')
     db.remove_image('base')
 
     try:
@@ -49,11 +49,11 @@ def test_commit_run(db, vm):
 
 
 def test_commit_overwrite_tag(db, vm):
-    vm.commit('thing')
+    vm.commit().tag('thing')
     thing_id = db.get_image('thing').name
     with vm.run(wait_for_ssh=30):
         pass
-    vm.commit('thing')
+    vm.commit().tag('thing')
     assert db.get_image('thing').name != thing_id
 
 

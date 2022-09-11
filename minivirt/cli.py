@@ -138,10 +138,11 @@ def images():
 
 @cli.command()
 @click.argument('name')
-@click.argument('image')
-def commit(name, image):
+@click.argument('tag')
+def commit(name, tag):
     vm = db.get_vm(name)
-    vm.commit(image)
+    image = vm.commit()
+    image.tag(tag)
 
 
 @cli.command()

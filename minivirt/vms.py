@@ -221,7 +221,7 @@ class VM:
         hostname = f'{self.name}.miv'
         return fn(['ssh', '-F', self.ssh_config_path, hostname, *args])
 
-    def commit(self, tag):
+    def commit(self):
         with self.db.create_image() as creator:
             config = {
                 'disk': True,
@@ -233,8 +233,6 @@ class VM:
                 self.disk_path, creator.path / self.disk_path.name
             ])
 
-        if tag:
-            creator.image.tag(tag)
         return creator.image
 
     @contextmanager
