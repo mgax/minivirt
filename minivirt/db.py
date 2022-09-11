@@ -60,6 +60,10 @@ class Image:
         if tree_checksum(self.path) != self.name:
             yield 'invalid checksum'
 
+    def get_size(self):
+        du_output = subprocess.check_output(['du', '-sh', self.path])
+        return du_output.decode('utf8').split()[0]
+
 
 class Tag:
     def __init__(self, db, name):

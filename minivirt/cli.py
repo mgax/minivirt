@@ -128,8 +128,7 @@ def ps(all_):
 @cli.command()
 def images():
     for image in db.iter_images():
-        du_output = subprocess.check_output(['du', '-sh', image.path])
-        size = du_output.decode('utf8').split()[0]
+        size = image.get_size()
         print(
             image.name[:8],
             size,
