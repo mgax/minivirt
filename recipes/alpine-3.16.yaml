@@ -4,54 +4,54 @@ iso: https://dl-cdn.alpinelinux.org/alpine/v3.16/releases/{arch}/alpine-virt-3.1
 
 steps:
   - name: boot
-    wait: "\n\rlocalhost login: $"
+    wait: "\n\rlocalhost login: "
 
   - name: login
     send: "root\n"
-    wait: "\r\n(localhost|alpine):~# (\x1b\\[6n)?$"
+    wait: "\r\nlocalhost:~# "
 
   - name: hwclock
     send: "hwclock --hctosys\n"
-    wait: "\r\n(localhost|alpine):~# (\x1b\\[6n)?$"
+    wait: "\r\nlocalhost:~# "
 
   - name: setup-alpine
     send: "setup-alpine -q\n"
-    wait: "\r\n(localhost|alpine):~# (\x1b\\[6n)?$"
+    wait: "\r\nalpine:~# "
 
   - name: setup-disk
     send: "setup-disk -m sys -s 0 /dev/vda\n"
-    wait: "\r\nWARNING: Erase the above disk\\(s\\) and continue\\? \\(y/n\\) \\[n\\] $"
+    wait: "\r\nWARNING: Erase the above disk\\(s\\) and continue\\? \\(y/n\\) \\[n\\] "
 
   - name: setup-disk yes please
     send: "y\n"
-    wait: "\r\n(localhost|alpine):~# (\x1b\\[6n)?$"
+    wait: "\r\nalpine:~# "
     timeout: 60
 
   - name: reboot
     send: "reboot\n"
-    wait: "\n\ralpine login: $"
+    wait: "\n\ralpine login: "
 
   - name: log in again
     send: "root\n"
-    wait: "\r\n(localhost|alpine):~# (\x1b\\[6n)?$"
+    wait: "\r\nalpine:~# "
 
   - name: community repo
     send: "echo 'http://dl-cdn.alpinelinux.org/alpine/v3.16/community' >> /etc/apk/repositories\n"
-    wait: "\r\n(localhost|alpine):~# (\x1b\\[6n)?$"
+    wait: "\r\nalpine:~# "
 
   - name: sshd
     send: "setup-sshd -k https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub openssh\n"
-    wait: "\r\n(localhost|alpine):~# (\x1b\\[6n)?$"
+    wait: "\r\nalpine:~# "
 
   - name: grub timeout
     if_arch: 'aarch64'
     send: "echo 'GRUB_TIMEOUT=0' >> /etc/default/grub && grub-mkconfig -o /boot/grub/grub.cfg\n"
-    wait: "\r\n(localhost|alpine):~# (\x1b\\[6n)?$"
+    wait: "\r\nalpine:~# "
 
   - name: default grub target
     if_arch: 'x86_64'
     send: "echo 'DEFAULT virt' >> /boot/extlinux.conf\n"
-    wait: "\r\n(localhost|alpine):~# (\x1b\\[6n)?$"
+    wait: "\r\nalpine:~# "
 
   - name: poweroff
     send: "poweroff\n"
