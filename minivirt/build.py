@@ -98,7 +98,9 @@ def build(db, recipe_path, tag=None, verbose=False):
     Builder(vm, verbose).build(recipe['steps'])
 
     vm = db.get_vm(name)
-    image = vm.commit(tag and tag.format(arch=qemu.arch))
+    image = vm.commit()
+    if tag:
+        image.tag(tag.format(arch=qemu.arch))
 
     for test in recipe.get('tests', []):
         test_name = test.get('name')
