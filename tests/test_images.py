@@ -14,7 +14,7 @@ def test_save_restore_run(db):
 
     try:
         vm = VM.create(
-            db, 'foo', db.get_image('newly-loaded-image'), memory=512
+            db, 'foo', image=db.get_image('newly-loaded-image'), memory=512
         )
         with vm.run(wait_for_ssh=30):
             out = vm.ssh('hostname', capture=True)
@@ -37,7 +37,7 @@ def test_commit_run(db, vm):
 
     try:
         bar = VM.create(
-            db, 'bar', db.get_image('newly-committed-image'), memory=512
+            db, 'bar', image=db.get_image('newly-committed-image'), memory=512
         )
         with bar.run(wait_for_ssh=30):
             out = bar.ssh('ls', capture=True)

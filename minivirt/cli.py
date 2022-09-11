@@ -57,7 +57,7 @@ def doctor():
 def create(image, name, **kwargs):
     image = db.get_image(image)
     try:
-        VM.create(db, name, image, **kwargs)
+        VM.create(db, name, image=image, **kwargs)
     except VmExists:
         raise click.ClickException(f'VM {name!r} already exists')
 

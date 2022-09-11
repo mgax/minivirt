@@ -17,35 +17,47 @@ VAGRANT_PRIVATE_KEY_PATH = Path(__file__).parent / 'vagrant-private-key'
 
 logger = logging.getLogger(__name__)
 
+RESOURCE_TYPES = {}
+
+
+def resource_type(name):
+    def decorator(cls):
+        RESOURCE_TYPES[name] = cls
+        return cls
+
+    return decorator
+
+
+@resource_type('disk')
+class Disk:
+    def __init__(self, path):
+        self.path = path
+        self.qemu_args = ['-drive', f'if=virtio,file={self.path}']
+
+
+@resource_type('cdrom')
+class CDROM:
+    def __init__(self, path):
+        self.path = path
+        self.qemu_args = ['-cdrom', self.path]
+
 
 class VM:
     @classmethod
-    def create(cls, db, name, image, memory, disk=None):
+    def create(cls, db, name, memory, image=None, disk=None):
         vm = cls(db, name)
         if vm.path.exists():
             raise VmExists(name)
         vm.path.mkdir(parents=True)
 
         if disk:
-            subprocess.check_call(
-                ['qemu-img', 'create', '-f', 'qcow2', vm.disk_path, disk]
-            )
+            vm.create_disk(disk)
 
-        if image.config.get('disk'):
-            disk = True
-            subprocess.check_call(
-                [
-                    'qemu-img', 'create', '-q',
-                    '-b', vm.relative_path(image.path / 'disk.qcow2'),
-                    '-F', 'qcow2',
-                    '-f', 'qcow2',
-                    vm.disk_path,
-                ]
-            )
+        if image and image.config.get('disk'):
+            vm.create_disk_with_base(image.path / 'disk.qcow2')
 
         vm.config.update(
-            image=image.name,
-            disk=disk,
+            image=image and image.name,
             memory=memory,
         )
         vm.config.save()
@@ -62,15 +74,68 @@ class VM:
         self.disk_path = self.path / 'disk.qcow2'
         self.ssh_config_path = self.path / 'ssh-config'
 
-    def relative_path(self, path):
-        return Path(os.path.relpath(path, self.path))
-
     def __repr__(self):
         return f'<VM {self.name!r}>'
 
+    def create_disk(self, size):
+        assert not self.disk_path.exists()
+        subprocess.check_call(
+            ['qemu-img', 'create', '-f', 'qcow2', self.disk_path, size]
+        )
+        self.config.update(disk=size)
+        self.config.save()
+
+    def create_disk_with_base(self, path):
+        assert not self.disk_path.exists()
+        subprocess.check_call(
+            [
+                'qemu-img', 'create', '-q',
+                '-b', self.relative_path(path),
+                '-F', 'qcow2',
+                '-f', 'qcow2',
+                self.disk_path,
+            ]
+        )
+        self.config.update(disk=True)
+        self.config.save()
+
+    def attach_disk(self, filename):
+        self.config.setdefault('resources', []).append(
+            {'type': 'disk', 'filename': filename}
+        )
+        self.config.save()
+
+    def attach_cdrom(self, filename):
+        self.config.setdefault('resources', []).append(
+            {'type': 'cdrom', 'filename': filename}
+        )
+        self.config.save()
+
+    def relative_path(self, path):
+        return Path(os.path.relpath(path, self.path))
+
     @cached_property
     def image(self):
-        return self.db.get_image(self.config['image'])
+        if self.config.get('image'):
+            return self.db.get_image(self.config['image'])
+
+    @property
+    def resources(self):
+        if self.config.get('disk'):
+            yield Disk(self.disk_path)
+
+        if self.image and self.image.iso_path:
+            yield CDROM(self.db.image_path(self.image.iso_path))
+
+        for resource in self.config.get('resources', []):
+            if resource['type'] == 'disk':
+                yield Disk(self.path / resource['filename'])
+
+            elif resource['type'] == 'cdrom':
+                yield Disk(self.path / resource['filename'])
+
+            else:
+                raise RuntimeError('Unknown resource type')
 
     def connect_qmp(self):
         return qemu.QMP(self.qmp_path)
@@ -139,15 +204,8 @@ class VM:
                 '-nographic',
             ]
 
-        if self.config['disk']:
-            qemu_cmd += [
-                '-drive', f'if=virtio,file={self.disk_path}',
-            ]
-
-        if self.image.iso_path:
-            qemu_cmd += [
-                '-cdrom', self.db.image_path(self.image.iso_path),
-            ]
+        for resource in self.resources:
+            qemu_cmd += resource.qemu_args
 
         if snapshot:
             qemu_cmd += [
@@ -245,5 +303,6 @@ class VM:
             self.kill(wait=True)
 
     def fsck(self):
-        if not self.db.image_path(self.config['image']).is_dir():
-            yield f'missing image {self.image}'
+        if self.config.get('image'):
+            if not self.db.image_path(self.config['image']).is_dir():
+                yield f'missing image {self.image}'

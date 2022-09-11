@@ -31,7 +31,7 @@ def test_bootstrap(db, monkeypatch):
     db.remove_image('alpine-iso')
     foo.destroy()
 
-    bar = VM.create(db, 'bar', image, memory=512)
+    bar = VM.create(db, 'bar', image=image, memory=512)
     with bar.run(wait_for_ssh=30):
         assert bar.ssh('uname -a', capture=True).startswith(b'Linux alpine')
     bar.destroy()

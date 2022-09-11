@@ -1,72 +1,88 @@
 memory: 512
-disk: 10G
-iso: https://dl-cdn.alpinelinux.org/alpine/v3.15/releases/{arch}/alpine-virt-3.15.4-{arch}.iso
-
 steps:
-  - name: boot
-    wait: "\n\rlocalhost login: "
+  - uses: create_disk_image
+    with:
+      size: 10G
+      attach:
+        type: disk
 
-  - name: login
-    send: "root\n"
-    wait: "\r\nlocalhost:~# "
+  - uses: download
+    with:
+      url: https://dl-cdn.alpinelinux.org/alpine/v3.15/releases/{arch}/alpine-virt-3.15.4-{arch}.iso
+      attach:
+        type: cdrom
 
-  - name: hwclock
-    send: "hwclock --hctosys\n"
-    wait: "\r\nlocalhost:~# "
+  - uses: run_with_serial_console
+    with:
+      steps:
+        - name: boot
+          wait: "\n\rlocalhost login: "
 
-  - name: setup-alpine
-    send: "setup-alpine -q\n"
-    wait: "\r\nSelect keyboard layout: \\[none\\] "
+        - name: login
+          send: "root\n"
+          wait: "\r\nlocalhost:~# "
 
-  - name: keyboard layout
-    send: "\n"
-    wait: "\r\nalpine:~# "
+        - name: hwclock
+          send: "hwclock --hctosys\n"
+          wait: "\r\nlocalhost:~# "
 
-  - name: setup-disk
-    send: "setup-disk -m sys -s 0 /dev/vda\n"
-    wait: "\r\nWARNING: Erase the above disk\\(s\\) and continue\\? \\(y/n\\) \\[n\\] "
+        - name: setup-alpine
+          send: "setup-alpine -q\n"
+          wait: "\r\nSelect keyboard layout: \\[none\\] "
 
-  - name: setup-disk yes please
-    send: "y\n"
-    wait: "\r\nalpine:~# "
-    timeout: 60
+        - name: keyboard layout
+          send: "\n"
+          wait: "\r\nalpine:~# "
 
-  - name: reboot
-    send: "reboot\n"
-    wait: "\n\ralpine login: "
+        - name: setup-disk
+          send: "setup-disk -m sys -s 0 /dev/vda\n"
+          wait: "\r\nWARNING: Erase the above disk\\(s\\) and continue\\? \\(y/n\\) \\[n\\] "
 
-  - name: log in again
-    send: "root\n"
-    wait: "\r\nalpine:~# "
+        - name: setup-disk yes please
+          send: "y\n"
+          wait: "\r\nalpine:~# "
+          timeout: 60
 
-  - name: community repo
-    send: "echo 'http://dl-cdn.alpinelinux.org/alpine/v3.15/community' >> /etc/apk/repositories\n"
-    wait: "\r\nalpine:~# "
+        - name: reboot
+          send: "reboot\n"
+          wait: "\n\ralpine login: "
 
-  - name: sshd
-    send: "setup-sshd\n"
-    wait: "\r\nWhich SSH server\\? \\('openssh', 'dropbear' or 'none'\\) \\[openssh\\] "
+        - name: log in again
+          send: "root\n"
+          wait: "\r\nalpine:~# "
 
-  - name: choose openssh
-    send: "\n"
-    wait: "\r\nalpine:~# "
+        - name: community repo
+          send: "echo 'http://dl-cdn.alpinelinux.org/alpine/v3.15/community' >> /etc/apk/repositories\n"
+          wait: "\r\nalpine:~# "
 
-  - name: vagrant ssh key
-    send: "apk add curl && mkdir ~/.ssh && chmod 700 ~/.ssh && curl https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub > ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys\n"
-    wait: "\r\nalpine:~# "
+        - name: sshd
+          send: "setup-sshd\n"
+          wait: "\r\nWhich SSH server\\? \\('openssh', 'dropbear' or 'none'\\) \\[openssh\\] "
 
-  - name: grub timeout
-    if_arch: 'aarch64'
-    send: "echo 'GRUB_TIMEOUT=0' >> /etc/default/grub && grub-mkconfig -o /boot/grub/grub.cfg\n"
-    wait: "\r\nalpine:~# "
+        - name: choose openssh
+          send: "\n"
+          wait: "\r\nalpine:~# "
 
-  - name: default grub target
-    if_arch: 'x86_64'
-    send: "echo 'DEFAULT virt' >> /boot/extlinux.conf\n"
-    wait: "\r\nalpine:~# "
+        - name: vagrant ssh key
+          send: "apk add curl && mkdir ~/.ssh && chmod 700 ~/.ssh && curl https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub > ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys\n"
+          wait: "\r\nalpine:~# "
 
-  - name: poweroff
-    send: "poweroff\n"
+        - name: grub timeout
+          if_arch: 'aarch64'
+          send: "echo 'GRUB_TIMEOUT=0' >> /etc/default/grub && grub-mkconfig -o /boot/grub/grub.cfg\n"
+          wait: "\r\nalpine:~# "
+
+        - name: default grub target
+          if_arch: 'x86_64'
+          send: "echo 'DEFAULT virt' >> /boot/extlinux.conf\n"
+          wait: "\r\nalpine:~# "
+
+        - name: poweroff
+          send: "poweroff\n"
+
+  - uses: detach
+    with:
+      filename: alpine-virt-3.16.2-{arch}.iso
 
 tests:
   - name: Alpine release number

@@ -30,5 +30,8 @@ class Config:
     def update(self, *args, **kwargs):
         self.content.update(*args, **kwargs)
 
-    def get(self, key, default):
+    def get(self, key, default=None):
         return self.content.get(key, default)
+
+    def setdefault(self, key, default):
+        return self.content.setdefault(key, default)
