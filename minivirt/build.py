@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import shutil
 from pathlib import Path
 
@@ -64,7 +65,7 @@ class Builder:
         return self.vm
 
 
-def build(db, recipe_path, verbose):
+def build(db, recipe_path, tag, verbose):
     with recipe_path.open() as f:
         recipe = yaml.load(f, yaml.Loader)
 
@@ -94,7 +95,36 @@ def build(db, recipe_path, verbose):
         disk=str(recipe['disk']),
     )
 
-    return Builder(vm, verbose).build(recipe['steps'])
+    Builder(vm, verbose).build(recipe['steps'])
+
+    vm = db.get_vm(name)
+    image = vm.commit(tag and tag.format(arch=qemu.arch))
+
+    for test in recipe.get('tests', []):
+        test_name = test.get('name')
+        logger.info('Running test: %r', test_name)
+        test_name = '_test'
+        db.get_vm(test_name).destroy()
+        test_vm = VM.create(
+            db=db,
+            name=test_name,
+            image=image,
+            memory=str(recipe['memory']),
+        )
+        with test_vm.run(wait_for_ssh=30):
+            out = test_vm.ssh(test['run'], capture=True)
+            logger.debug('Output: %r', out)
+            expect = test['expect'].encode('utf8')
+            if re.match(expect, out):
+                logger.info('Test %r OK', test_name)
+            else:
+                logger.error(
+                    'Test %r failed. Expected: %r; output: %r',
+                    test_name, expect, out
+                )
+                return
+
+    return image
 
 
 @click.command
@@ -106,7 +136,9 @@ def build(db, recipe_path, verbose):
 def cli(recipe, tag, verbose):
     from minivirt.cli import db
 
-    vm = build(db, recipe, verbose)
+    image = build(db, recipe, tag, verbose)
+    if image is None:
+        raise click.ClickException('Build test failed')
 
-    if tag:
-        vm.commit(tag.format(arch=qemu.arch))
+    size = image.get_size()
+    print(image.name[:8], size)  # noqa: T201
