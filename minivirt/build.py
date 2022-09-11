@@ -32,7 +32,7 @@ class Builder:
         self.console.send(message)
 
     def step(self, step):
-        name = step['name']
+        name = step.get('name', '-- unnamed step --')
 
         if 'if_arch' in step:
             if qemu.arch != step['if_arch']:
