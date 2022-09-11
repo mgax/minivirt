@@ -15,9 +15,14 @@ from .vms import VM
 logger = logging.getLogger(__name__)
 
 
+class ImageTestError(RuntimeError):
+    pass
+
+
 class Builder:
-    def __init__(self, vm, verbose):
-        self.vm = vm
+    def __init__(self, db, recipe, verbose):
+        self.db = db
+        self.recipe = recipe
         self.verbose = verbose
 
     def wait(self, pattern, **kwargs):
@@ -32,7 +37,7 @@ class Builder:
         logger.info('Sending: %r', message)
         self.console.send(message)
 
-    def step(self, step):
+    def console_step(self, step):
         name = step.get('name', '-- unnamed step --')
 
         if 'if_arch' in step:
@@ -52,80 +57,77 @@ class Builder:
                 kwargs['timeout'] = step['timeout']
             self.wait(step['wait'].encode('utf8'), **kwargs)
 
-    def build(self, steps):
+    def build(self):
+        iso_url = self.recipe['iso'].format(arch=qemu.arch)
+
+        with self.db.create_image() as creator:
+            filename = Path(iso_url).name
+            logger.info('Downloading %s ...', filename)
+            iso_path = creator.path / filename
+            download_path = self.db.cache.get(iso_url)
+            shutil.copy(download_path, iso_path)
+
+            config = {
+                'iso': filename,
+            }
+            config_path = creator.path / 'config.json'
+            with config_path.open('w') as f:
+                json.dump(config, f, indent=2)
+
+        name = '_build'
+        self.db.get_vm(name).destroy()
+        self.vm = VM.create(
+            db=self.db,
+            name=name,
+            image=creator.image,
+            memory=str(self.recipe['memory']),
+            disk=str(self.recipe['disk']),
+        )
+
         logger.info('Bootstrapping Alpine %s ...', self.vm)
         with self.vm.run():
             self.console = Console(self.vm.serial_path)
-            for step in steps:
-                self.step(step)
+            for step in self.recipe['steps']:
+                self.console_step(step)
             waitfor(lambda: not self.vm.qmp_path.exists())
 
         logger.info('Build finished.')
+        self.image = self.vm.commit()
+        return self.image
 
-        return self.vm
+    def test(self):
+        for test in self.recipe.get('tests', []):
+            test_name = test.get('name')
+            logger.info('Running test: %r', test_name)
+            test_name = '_test'
+            self.db.get_vm(test_name).destroy()
+            test_vm = VM.create(
+                db=self.db,
+                name=test_name,
+                image=self.image,
+                memory=str(self.recipe['memory']),
+            )
+            with test_vm.run(wait_for_ssh=30):
+                out = test_vm.ssh(test['run'], capture=True)
+                logger.debug('Output: %r', out)
+                expect = test['expect'].encode('utf8')
+                if re.match(expect, out):
+                    logger.info('Test %r OK', test_name)
+                else:
+                    logger.error(
+                        'Test %r failed. Expected: %r; output: %r',
+                        test_name, expect, out
+                    )
+                    raise ImageTestError
 
 
-def build(db, recipe_path, tag=None, verbose=False):
+def build(db, recipe_path, verbose=False):
     with recipe_path.open() as f:
         recipe = yaml.load(f, yaml.Loader)
 
-    iso_url = recipe['iso'].format(arch=qemu.arch)
-
-    with db.create_image() as creator:
-        filename = Path(iso_url).name
-        logger.info('Downloading %s ...', filename)
-        iso_path = creator.path / filename
-        download_path = db.cache.get(iso_url)
-        shutil.copy(download_path, iso_path)
-
-        config = {
-            'iso': filename,
-        }
-        config_path = creator.path / 'config.json'
-        with config_path.open('w') as f:
-            json.dump(config, f, indent=2)
-
-    name = '_build'
-    db.get_vm(name).destroy()
-    vm = VM.create(
-        db=db,
-        name=name,
-        image=creator.image,
-        memory=str(recipe['memory']),
-        disk=str(recipe['disk']),
-    )
-
-    Builder(vm, verbose).build(recipe['steps'])
-
-    vm = db.get_vm(name)
-    image = vm.commit()
-    if tag:
-        image.tag(tag.format(arch=qemu.arch))
-
-    for test in recipe.get('tests', []):
-        test_name = test.get('name')
-        logger.info('Running test: %r', test_name)
-        test_name = '_test'
-        db.get_vm(test_name).destroy()
-        test_vm = VM.create(
-            db=db,
-            name=test_name,
-            image=image,
-            memory=str(recipe['memory']),
-        )
-        with test_vm.run(wait_for_ssh=30):
-            out = test_vm.ssh(test['run'], capture=True)
-            logger.debug('Output: %r', out)
-            expect = test['expect'].encode('utf8')
-            if re.match(expect, out):
-                logger.info('Test %r OK', test_name)
-            else:
-                logger.error(
-                    'Test %r failed. Expected: %r; output: %r',
-                    test_name, expect, out
-                )
-                return
-
+    builder = Builder(db, recipe, verbose)
+    image = builder.build()
+    builder.test()
     return image
 
 
@@ -138,9 +140,13 @@ def build(db, recipe_path, tag=None, verbose=False):
 def cli(recipe, tag, verbose):
     from minivirt.cli import db
 
-    image = build(db, recipe, tag, verbose)
-    if image is None:
+    try:
+        image = build(db, recipe, verbose)
+    except ImageTestError:
         raise click.ClickException('Build test failed')
+
+    if tag:
+        image.tag(tag.format(arch=qemu.arch))
 
     size = image.get_size()
     print(image.name[:8], size)  # noqa: T201
