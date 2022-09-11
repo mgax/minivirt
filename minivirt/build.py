@@ -65,7 +65,7 @@ class Builder:
         return self.vm
 
 
-def build(db, recipe_path, tag, verbose):
+def build(db, recipe_path, tag=None, verbose=False):
     with recipe_path.open() as f:
         recipe = yaml.load(f, yaml.Loader)
 
