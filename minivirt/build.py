@@ -169,17 +169,17 @@ class Builder:
         func(self, **step['with'])
 
     def console_step(self, step):
-        name = step.get('name', '-- unnamed step --')
+        uses = step.get('uses')
+        name = step.get('name') or f'uses: {uses}'
 
         if 'if_arch' in step:
             if qemu.arch != step['if_arch']:
                 logger.info('Skipping step: %r', name)
                 return
 
-        if name:
-            logger.info('Step: %r', name)
+        logger.info('Step: %r', name)
 
-        if 'uses' in step:
+        if uses is not None:
             func = BUILD_STEPS[step['uses']]
             func(self, **step.get('with', {}))
             return
