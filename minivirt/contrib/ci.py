@@ -31,12 +31,14 @@ def build(image, name, memory):
         'qemu-system-x86_64',
         'qemu-img',
         'socat',
+        'curl',
         'tar',
         'git',
         'bash',
         'vim',
         'gcompat',
         'icu',
+        'cdrkit',
     ]
     apk_sed = r's|# \(http://dl-cdn.alpinelinux.org/alpine/.*/community\)|\1|'
     login_shell_sed = r's|\(root:x:0:0:root:/root:\)/bin/ash|\1/bin/bash|'
