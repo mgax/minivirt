@@ -185,7 +185,7 @@ class Builder:
             return
 
         if 'send' in step:
-            self.send(step['send'].encode('utf8'))
+            self.send(interpolate(step['send']).encode('utf8'))
 
         if 'wait' in step:
             kwargs = {}
