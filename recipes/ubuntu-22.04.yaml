@@ -1,4 +1,5 @@
 memory: 512
+
 steps:
   - uses: download
     if_arch: 'aarch64'
@@ -19,8 +20,7 @@ steps:
   - uses: cloud_init_iso
     with:
       filename: cloud-init.iso
-      content: |
-        #cloud-config
+      cloud_config: |
         disable_root: false
         ssh_authorized_keys:
           - {vagrant_pubkey}
@@ -32,18 +32,11 @@ steps:
       attach:
         type: cdrom
 
-  - uses: run_with_serial_console
+  - uses: run
     with:
       steps:
-        - name: boot
-          wait: "\r\nubuntu login: "
-
-        - uses: wait_for_ssh
-
-        - uses: ssh
-          with:
-            run: poweroff
-            check: false
+        - run: poweroff
+          continue_on_error: true
 
   - uses: detach
     with:

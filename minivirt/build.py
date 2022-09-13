@@ -2,6 +2,7 @@ import logging
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -81,12 +82,13 @@ def download(builder, url, attach=None, filename=None):
 
 
 @build_step
-def cloud_init_iso(builder, content, filename, attach=None):
-    content = interpolate(content)
+def cloud_init_iso(builder, cloud_config, filename, attach=None):
+    cloud_config = interpolate(cloud_config)
     with tempfile.TemporaryDirectory() as tmp:
         user_data_path = Path(tmp) / 'user-data'
         with user_data_path.open('w') as f:
-            f.write(content)
+            f.write('#cloud-config\n')
+            f.write(cloud_config)
 
         meta_data_path = Path(tmp) / 'meta-data'
         meta_data_path.touch()
@@ -105,12 +107,20 @@ def cloud_init_iso(builder, content, filename, attach=None):
 
 
 @build_step
-def run_with_serial_console(builder, steps):
+def run_console(builder, steps):
     with builder.vm.run():
         builder.console = Console(builder.vm.serial_path)
         for step in steps:
             builder.console_step(step)
         builder.console.wait_for_poweroff(builder.vm, builder.verbose)
+
+
+@build_step
+def run(builder, steps, wait_for_ssh=300):
+    with builder.vm.run():
+        builder.vm.wait_for_ssh(wait_for_ssh)
+        for step in steps:
+            builder.ssh_step(step)
 
 
 @build_step
@@ -120,20 +130,6 @@ def detach(builder, filename):
         if item.get('filename') == filename:
             resources.remove(item)
             builder.vm.config.save()
-
-
-@build_step
-def wait_for_ssh(builder):
-    builder.vm.wait_for_ssh()
-
-
-@build_step
-def ssh(builder, run, check=True):
-    try:
-        builder.vm.ssh(run)
-    except subprocess.CalledProcessError:
-        if check:
-            raise
 
 
 class ImageTestError(RuntimeError):
@@ -191,6 +187,27 @@ class Builder:
             if 'timeout' in step:
                 kwargs['timeout'] = step['timeout']
             self.wait(step['wait'].encode('utf8'), **kwargs)
+
+    def ssh_step(self, step):
+        run = step.get('run')
+        name = step.get('name') or f'run: {run}'
+
+        if 'if_arch' in step:
+            if qemu.arch != step['if_arch']:
+                logger.info('Skipping step: %r', name)
+                return
+
+        logger.info('Step: %r', name)
+
+        try:
+            out = self.vm.ssh(run)
+        except subprocess.CalledProcessError:
+            if not step.get('continue_on_error'):
+                raise
+
+        if self.verbose:
+            sys.stdout.buffer.write(out)
+            sys.stdout.buffer.flush()
 
     def build(self):
         name = '_build'
