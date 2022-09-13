@@ -10,7 +10,6 @@ import yaml
 
 from . import qemu
 from .contrib.alpine import Console
-from .utils import waitfor
 from .vms import VM
 
 logger = logging.getLogger(__name__)
@@ -111,7 +110,7 @@ def run_with_serial_console(builder, steps):
         builder.console = Console(builder.vm.serial_path)
         for step in steps:
             builder.console_step(step)
-        waitfor(lambda: not builder.vm.qmp_path.exists(), timeout=300)
+        builder.console.wait_for_poweroff(builder.vm, builder.verbose)
 
 
 @build_step

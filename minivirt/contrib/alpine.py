@@ -68,6 +68,23 @@ class Console:
         logger.debug('Sending %r', message)
         self.sock.sendall(message)
 
+    def wait_for_poweroff(self, vm, verbose=False):
+        def forward_console_until_poweroff():
+            while True:
+                try:
+                    chunk = self.recv()
+                except OSError:
+                    break
+                if verbose:
+                    sys.stdout.buffer.write(chunk)
+                    sys.stdout.buffer.flush()
+                if not chunk:
+                    break
+
+            return not vm.qmp_path.exists()
+
+        waitfor(forward_console_until_poweroff, timeout=300)
+
 
 class Bootstrap:
     def __init__(self, vm):
