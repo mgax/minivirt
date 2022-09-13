@@ -111,7 +111,7 @@ def run_with_serial_console(builder, steps):
         builder.console = Console(builder.vm.serial_path)
         for step in steps:
             builder.console_step(step)
-        waitfor(lambda: not builder.vm.qmp_path.exists())
+        waitfor(lambda: not builder.vm.qmp_path.exists(), timeout=300)
 
 
 @build_step

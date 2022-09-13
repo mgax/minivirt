@@ -35,7 +35,9 @@ class Console:
         logger.debug('Received %r', chunk)
         return chunk
 
-    def wait_for_pattern(self, pattern, limit=1000, timeout=30, verbose=False):
+    def wait_for_pattern(
+        self, pattern, limit=1000, timeout=300, verbose=False
+    ):
         buffer = b''
 
         def look_for_pattern():
