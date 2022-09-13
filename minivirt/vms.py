@@ -288,6 +288,7 @@ class VM:
         return fn(['ssh', '-F', self.ssh_config_path, hostname, *args])
 
     def commit(self):
+        logger.info('Comitting image for %s', self)
         with self.db.create_image() as creator:
             config = {
                 'disk': True,

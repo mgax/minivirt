@@ -129,6 +129,7 @@ class ImageCreator:
             # TODO check the image's checksum, just to be safe
         else:
             self.path.rename(image_path)
+        logger.info('Committed image %s', image_id)
         return self.db.get_image(image_id)
 
 
