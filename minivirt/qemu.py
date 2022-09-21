@@ -11,31 +11,48 @@ logger = logging.getLogger(__name__)
 machine = subprocess.check_output(['uname', '-m']).decode('utf8').strip()
 
 if machine == 'arm64':
-    firmware = '/opt/homebrew/share/qemu/edk2-aarch64-code.fd'
     arch = 'aarch64'
     binary = 'qemu-system-aarch64'
-    os_name = 'macos'
     command_prefix = [
         binary,
-        '-M', 'virt,accel=hvf',
         '-cpu', 'host',
-        '-drive', f'if=pflash,format=raw,file={firmware},readonly=on',
+        '-machine', 'virt',
     ]
-    genisoimage_cmd = 'mkisofs'
 
 elif machine == 'x86_64':
     arch = 'x86_64'
     binary = 'qemu-system-x86_64'
-    os_name = 'linux'
     command_prefix = [
         binary,
-        '-enable-kvm',
-        '-cpu', 'host',
+    ]
+
+else:
+    raise RuntimeError(f'Unknown machine {machine!r}')
+
+
+kernel = subprocess.check_output(['uname']).decode('utf8').strip()
+
+if kernel == 'Darwin':
+    os_name = 'macos'
+    genisoimage_cmd = 'mkisofs'
+    command_prefix += [
+        '-accel', 'hvf',
+    ]
+    if machine == 'arm64':
+        firmware = '/opt/homebrew/share/qemu/edk2-aarch64-code.fd'
+        command_prefix += [
+            '-drive', f'if=pflash,format=raw,file={firmware},readonly=on',
+        ]
+
+elif kernel == 'Linux':
+    os_name = 'linux'
+    command_prefix += [
+        '-accel', 'kvm',
     ]
     genisoimage_cmd = 'genisoimage'
 
 else:
-    raise RuntimeError(f'Unknown machine {machine!r}')
+    raise RuntimeError(f'Unknown kernel {kernel!r}')
 
 
 def get_display_args():
