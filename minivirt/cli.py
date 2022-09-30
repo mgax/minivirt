@@ -7,7 +7,7 @@ from pathlib import Path
 import click
 
 from . import build, qemu, remotes
-from .contrib import alpine, ci, systemd
+from .contrib import alpine, ci, githubactions, systemd
 from .db import DB
 from .exceptions import VmExists, VmIsRunning
 from .vms import VM
@@ -189,3 +189,4 @@ cli.add_command(ci.cli, name='ci')
 cli.add_command(remotes.cli, name='remote')
 cli.add_command(systemd.cli, name='systemd')
 cli.add_command(build.cli, name='build')
+cli.add_command(githubactions.cli, name='githubactions')
