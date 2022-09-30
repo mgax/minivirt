@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 GITHUB_RUNNER_URL = (
     'https://github.com/actions/runner/releases/download/'
-    'v2.293.0/actions-runner-linux-x64-2.293.0.tar.gz'
+    'v2.297.0/actions-runner-linux-x64-2.297.0.tar.gz'
 )
 
 
