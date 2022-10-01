@@ -67,8 +67,10 @@ def runner(image_name, github_repo, memory):
                 f'/root/actions-runner/bin/Runner.Listener configure'
                 f' --url {github_repo.html_url}'
                 f' --token {registration_token}'
+                f' --name {vm_name}'
                 f' --ephemeral'
                 f' --unattended'
+                f' --disableupdate'
             )
             logger.info('Starting runner')
             vm.ssh(
