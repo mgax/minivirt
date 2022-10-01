@@ -42,6 +42,10 @@ def _build(image, name, memory):
         vm.ssh('curl -LOs https://dot.net/v1/dotnet-install.sh')
         vm.ssh('bash dotnet-install.sh -c 6.0')
         vm.ssh('ln -s /root/.dotnet/dotnet /usr/local/bin')
+        vm.ssh(
+            f'mkdir actions-runner && cd actions-runner'
+            f' && curl -Ls {GITHUB_RUNNER_URL} | tar xz'
+        )
         vm.ssh('poweroff')
         vm.wait()
 
@@ -85,12 +89,10 @@ def setup_github_runner(name, repo, token):
     vm = db.get_vm(name)
     with vm.run(wait_for_ssh=30):
         vm.ssh(
-            f'mkdir actions-runner && cd actions-runner'
-            f' && curl -Ls {GITHUB_RUNNER_URL} | tar xz'
-            f' && ./bin/Runner.Listener configure'
-            f'      --url {repo}'
-            f'      --token {token}'
-            f'      --unattended'
+            f'/root/actions-runner/bin/Runner.Listener configure'
+            f' --url {repo}'
+            f' --token {token}'
+            f' --unattended'
         )
         vm.ssh('poweroff')
         vm.wait()

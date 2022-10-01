@@ -50,7 +50,6 @@ def _random_name(prefix):
 
 def runner(image_name, github_repo, memory):
     from minivirt.cli import db
-    from minivirt.contrib.ci import GITHUB_RUNNER_URL
 
     logger.info('Fetching runner registration token')
     _, data = github_repo._requester.requestJsonAndCheck(
@@ -65,14 +64,11 @@ def runner(image_name, github_repo, memory):
     try:
         with vm.run(wait_for_ssh=30):
             vm.ssh(
-                # TODO move the runner installation to the image
-                f'mkdir actions-runner && cd actions-runner'
-                f' && curl -Ls {GITHUB_RUNNER_URL} | tar xz'
-                f' && ./bin/Runner.Listener configure'
-                f'      --url {github_repo.html_url}'
-                f'      --token {registration_token}'
-                f'      --ephemeral'
-                f'      --unattended'
+                f'/root/actions-runner/bin/Runner.Listener configure'
+                f' --url {github_repo.html_url}'
+                f' --token {registration_token}'
+                f' --ephemeral'
+                f' --unattended'
             )
             logger.info('Starting runner')
             vm.ssh(
