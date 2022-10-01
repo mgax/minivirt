@@ -42,7 +42,7 @@ def create_webhook(repo, url):
     return repo.create_hook('web', config, events, active=True)
 
 
-def runner(github_repo, memory):
+def runner(image_name, github_repo, memory):
     from minivirt.cli import db
     from minivirt.contrib.ci import GITHUB_RUNNER_URL
 
@@ -53,7 +53,7 @@ def runner(github_repo, memory):
     registration_token = data['token']
 
     vm_name = f'githubactions_{time()}'.replace('.', '_')
-    image = db.get_image('githubactions')
+    image = db.get_image(image_name)
     logger.info('Creating VM %s', vm_name)
     vm = VM.create(db, vm_name, image=image, memory=memory)
     try:
@@ -120,10 +120,11 @@ def cli():
 
 
 @cli.command()
+@click.argument('image')
 @click.argument('repo')
 @click.option('--memory', default=512)
 @click.option('--concurrency', default=1)
-def serve(repo, memory, concurrency):
+def serve(image, repo, memory, concurrency):
     import waitress
     from pyngrok import ngrok
 
@@ -138,7 +139,7 @@ def serve(repo, memory, concurrency):
     try:
         with ThreadPoolExecutor(max_workers=concurrency) as executor:
             def start_runner():
-                executor.submit(runner, github_repo, memory)
+                executor.submit(runner, image, github_repo, memory)
 
             wsgi_app = Webhook(start_runner)
             waitress.serve(wsgi_app, listen=listen)
