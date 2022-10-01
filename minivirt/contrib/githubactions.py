@@ -122,7 +122,8 @@ def cli():
 @cli.command()
 @click.argument('repo')
 @click.option('--memory', default=512)
-def serve(repo, memory):
+@click.option('--concurrency', default=1)
+def serve(repo, memory, concurrency):
     import waitress
     from pyngrok import ngrok
 
@@ -135,7 +136,7 @@ def serve(repo, memory):
     webhook = create_webhook(github_repo, tunnel.public_url)
 
     try:
-        with ThreadPoolExecutor(max_workers=1) as executor:
+        with ThreadPoolExecutor(max_workers=concurrency) as executor:
             def start_runner():
                 executor.submit(runner, github_repo, memory)
 
