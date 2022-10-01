@@ -152,7 +152,13 @@ miv fsck
 
 ## Extra
 
-### Alpine
+### Recipes
+
+Minivirt can build images from recipes, which are YAML files, with a syntax inspired by Github Actions workflows.
+
+```shell
+miv build recipes/alpine-3.16.yaml --tag alpine-3.16-{arch} -v
+```
 
 The `miv alpine` commands will automate the download and installation of Alpine Linux. That's how the _default_ images are created:
 
