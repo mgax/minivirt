@@ -24,6 +24,7 @@ elif machine == 'x86_64':
     binary = 'qemu-system-x86_64'
     command_prefix = [
         binary,
+        '-cpu', 'host',
     ]
 
 else:
