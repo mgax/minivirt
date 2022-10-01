@@ -1,5 +1,7 @@
+import hmac
 import json
 import logging
+import secrets
 import socket
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
@@ -36,8 +38,8 @@ def github_repo_api(token, repo):
     return Github(token).get_repo(repo)
 
 
-def create_webhook(repo, url):
-    config = dict(url=url, content_type='json')
+def create_webhook(repo, url, secret):
+    config = dict(url=url, content_type='json', secret=secret)
     events = ['ping', 'workflow_job']
     return repo.create_hook('web', config, events, active=True)
 
@@ -83,7 +85,8 @@ def runner(image_name, github_repo, memory):
 
 class Webhook:
 
-    def __init__(self, start_runner):
+    def __init__(self, secret, start_runner):
+        self.secret = secret
         self.start_runner = start_runner
 
     def __call__(self, environ, start_response):
@@ -92,9 +95,13 @@ class Webhook:
             return [data.encode('utf8')]
 
         try:
-            # TODO check X-Hub-Signature headers
             event = environ.get('HTTP_X_GITHUB_EVENT')
-            payload = json.load(environ['wsgi.input'])
+            signature = environ.get('HTTP_X_HUB_SIGNATURE_256')
+            payload_bytes = environ['wsgi.input'].read()
+            if not self.check(signature, payload_bytes):
+                logger.warning('Signature check failed')
+                return respond('400 Bad Request', 'bad signature')
+            payload = json.loads(payload_bytes)
             handler = getattr(self, f'handle_{event}')
             body = handler(payload)
 
@@ -104,6 +111,13 @@ class Webhook:
 
         else:
             return respond('200 OK', body)
+
+    def check(self, signature, payload_bytes):
+        assert signature.startswith('sha256=')
+        digest = hmac.HMAC(
+            self.secret.encode('utf8'), payload_bytes, 'sha256'
+        ).hexdigest()
+        return hmac.compare_digest(signature.split('=')[1], digest)
 
     def handle_ping(self, payload):
         logger.info('Webhook ping: %s', payload['zen'])
@@ -151,14 +165,15 @@ def serve(image, repo, memory, concurrency):
     tunnel = ngrok.connect(port, bind_tls=True)
     logger.info('ngrok tunnel %s', tunnel.public_url)
 
-    webhook = create_webhook(github_repo, tunnel.public_url)
+    secret = secrets.token_hex()
+    webhook = create_webhook(github_repo, tunnel.public_url, secret)
 
     try:
         with ThreadPoolExecutor(max_workers=concurrency) as executor:
             def start_runner():
                 executor.submit(runner, image, github_repo, memory)
 
-            wsgi_app = Webhook(start_runner)
+            wsgi_app = Webhook(secret, start_runner)
             waitress.serve(wsgi_app, listen=listen)
 
     finally:
