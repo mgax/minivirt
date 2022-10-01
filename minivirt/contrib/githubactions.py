@@ -42,6 +42,10 @@ def create_webhook(repo, url):
     return repo.create_hook('web', config, events, active=True)
 
 
+def _random_name(prefix):
+    return f'{prefix}_{str(time()).replace(".", "_")}'
+
+
 def runner(image_name, github_repo, memory):
     from minivirt.cli import db
     from minivirt.contrib.ci import GITHUB_RUNNER_URL
@@ -52,7 +56,7 @@ def runner(image_name, github_repo, memory):
     )
     registration_token = data['token']
 
-    vm_name = f'githubactions_{time()}'.replace('.', '_')
+    vm_name = _random_name('githubactions')
     image = db.get_image(image_name)
     logger.info('Creating VM %s', vm_name)
     vm = VM.create(db, vm_name, image=image, memory=memory)
@@ -117,6 +121,19 @@ class Webhook:
 @click.group()
 def cli():
     logging.getLogger('pyngrok').setLevel(logging.WARNING)
+
+
+@cli.command()
+@click.argument('base-name')
+@click.argument('image-name')
+def build(base_name, image_name):
+    from minivirt.contrib import ci
+
+    vm_name = _random_name('githubactionsbuild')
+    vm = ci._build(base_name, vm_name, memory=1024)
+    image = vm.commit()
+    vm.destroy()
+    image.tag(image_name)
 
 
 @cli.command()

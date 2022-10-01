@@ -13,16 +13,7 @@ GITHUB_RUNNER_URL = (
 )
 
 
-@click.group()
-def cli():
-    pass
-
-
-@cli.command()
-@click.argument('image')
-@click.argument('name')
-@click.option('--memory', default=1024)
-def build(image, name, memory):
+def _build(image, name, memory):
     from minivirt.cli import db
 
     packages = [
@@ -53,6 +44,21 @@ def build(image, name, memory):
         vm.ssh('ln -s /root/.dotnet/dotnet /usr/local/bin')
         vm.ssh('poweroff')
         vm.wait()
+
+    return vm
+
+
+@click.group()
+def cli():
+    pass
+
+
+@cli.command()
+@click.argument('image')
+@click.argument('name')
+@click.option('--memory', default=1024)
+def build(image, name, memory):
+    _build(image, name, memory)
 
 
 @cli.command()
