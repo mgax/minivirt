@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import os
 import re
 import shutil
 import subprocess
@@ -44,7 +45,7 @@ class Image:
         tag_path = self.db.image_path(name)
         target = Path(self.name)
         if tag_path.is_symlink():
-            old_target = tag_path.readlink()
+            old_target = Path(os.readlink(tag_path))
             if old_target == target:
                 return
             logger.warning('Overwriting tag %s -> %s', name, old_target.name)
