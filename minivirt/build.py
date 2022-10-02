@@ -2,7 +2,6 @@ import logging
 import re
 import shutil
 import subprocess
-import sys
 import tempfile
 from pathlib import Path
 
@@ -200,14 +199,10 @@ class Builder:
         logger.info('Step: %r', name)
 
         try:
-            out = self.vm.ssh(run)
+            self.vm.ssh(run)
         except subprocess.CalledProcessError:
             if not step.get('continue_on_error'):
                 raise
-
-        if self.verbose:
-            sys.stdout.buffer.write(out)
-            sys.stdout.buffer.flush()
 
     def build(self):
         name = '_build'
