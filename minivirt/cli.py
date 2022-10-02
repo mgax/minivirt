@@ -174,6 +174,12 @@ def prune(dry_run):
 
 
 @cli.command()
+@click.argument('name')
+def untag(name):
+    db.get_tag(name).delete()
+
+
+@cli.command()
 @click.argument('remote')
 @click.argument('ref')
 @click.argument('remote_tag')
