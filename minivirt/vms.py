@@ -314,7 +314,6 @@ class VM:
 
     @contextmanager
     def run(self, **kwargs):
-        logger.info('Running %s ...', self.name)
         try:
             self.start(daemon=True, **kwargs)
             yield
