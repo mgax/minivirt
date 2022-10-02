@@ -1,8 +1,10 @@
+import hashlib
 import logging
 import os
 import subprocess
 import sys
 from pathlib import Path
+from time import time
 
 import click
 
@@ -110,6 +112,23 @@ def console(name):
 def ssh(name, args):
     vm = db.get_vm(name)
     vm.ssh(*args)
+
+
+@cli.command()
+@click.option('--memory', default=4096)
+@click.option('--wait-for-ssh', default=30)
+@click.argument('image_name')
+def run(memory, wait_for_ssh, image_name):
+    image = db.get_image(image_name)
+    vm_name = hashlib.sha256(
+        f'{image.name}@{time()}'.encode('utf8')
+    ).hexdigest()
+    vm = VM.create(db, vm_name, image=image, memory=memory)
+    try:
+        with vm.run(wait_for_ssh=wait_for_ssh):
+            vm.ssh()
+    finally:
+        vm.destroy()
 
 
 @cli.command()

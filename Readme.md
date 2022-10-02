@@ -61,6 +61,14 @@ miv start foo --display
 miv destroy foo
 ```
 
+### Run
+
+Start a temporary VM and shell into it. When you exit the shell, the VM is destroyed.
+
+```shell
+miv run alpine
+```
+
 ### SSH
 
 Add these lines to your ssh config (`~/.ssh/config`):
