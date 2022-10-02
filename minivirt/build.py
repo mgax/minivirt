@@ -212,9 +212,17 @@ class Builder:
     def build(self):
         name = '_build'
         self.db.get_vm(name).destroy()
+
+        if 'from' in self.recipe:
+            image = self.db.get_image(self.recipe['from'])
+            logger.info('Using %s as base image', image)
+        else:
+            image = None
+
         self.vm = VM.create(
             db=self.db,
             name=name,
+            image=image,
             memory=str(self.recipe['memory']),
         )
 
