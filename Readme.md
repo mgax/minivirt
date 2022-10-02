@@ -185,6 +185,12 @@ miv push default alpine-3.15.4 alpine-3.15.4-aarch64
 
 ### GitHub Actions
 
+Install extra dependencies:
+
+```shell
+pip install -e minivirt[githubactions]
+```
+
 The `miv githubactions build` command prepares an actions runner image:
 
 ```shell
