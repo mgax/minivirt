@@ -79,9 +79,8 @@ def runner(image_name, github_repo, memory):
                 f' --disableupdate'
             )
             logger.info('Runner %s starting', vm_name)
-            vm.ssh(
-                'RUNNER_ALLOW_RUNASROOT=yes /root/actions-runner/run.sh'
-            )
+            vm.ssh('poweroff -d 1800 > /dev/null 2>/dev/null &')
+            vm.ssh('RUNNER_ALLOW_RUNASROOT=yes /root/actions-runner/run.sh')
 
     finally:
         logger.info('Runner %s done', vm_name)
