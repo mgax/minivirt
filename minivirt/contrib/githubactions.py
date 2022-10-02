@@ -57,7 +57,7 @@ def _random_name(prefix):
 def runner(image_name, github_repo, memory):
     from minivirt.cli import db
 
-    logger.info('Fetching runner registration token')
+    logger.debug('Fetching runner registration token')
     _, data = github_repo._requester.requestJsonAndCheck(
         'POST', f'{github_repo.url}/actions/runners/registration-token'
     )
@@ -65,7 +65,7 @@ def runner(image_name, github_repo, memory):
 
     vm_name = _random_name('githubactions')
     image = db.get_image(image_name)
-    logger.info('Creating VM %s', vm_name)
+    logger.info('Runner %s creating', vm_name)
     vm = VM.create(db, vm_name, image=image, memory=memory)
     try:
         with vm.run(wait_for_ssh=30):
@@ -78,12 +78,13 @@ def runner(image_name, github_repo, memory):
                 f' --unattended'
                 f' --disableupdate'
             )
-            logger.info('Starting runner')
+            logger.info('Runner %s starting', vm_name)
             vm.ssh(
                 'RUNNER_ALLOW_RUNASROOT=yes /root/actions-runner/run.sh'
             )
 
     finally:
+        logger.info('Runner %s done', vm_name)
         vm.destroy()
 
 
@@ -130,7 +131,9 @@ class Webhook:
     def handle_workflow_job(self, payload):
         job = payload['workflow_job']
         action = payload['action']
-        logger.info('Webhook workflow job %s %s', action, job['html_url'])
+        logger.info(
+            'Job %s %s %s', action, job['runner_name'], job['html_url']
+        )
         if action == 'queued':
             self.start_runner()
         return 'thanks'
