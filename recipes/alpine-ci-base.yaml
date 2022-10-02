@@ -13,7 +13,7 @@ steps:
             cd Python-3.8.14
             ./configure --prefix=/opt/resources/python-3.8
             make install
-            ln -s /opt/resources/python-3.8/bin/python-3.8 /usr/local/bin/
+            ln -s /opt/resources/python-3.8/bin/python3.8 /usr/local/bin/
             cd ..
             rm -rf Python-3.8.14
 
@@ -22,7 +22,7 @@ steps:
             cd Python-3.10.7
             ./configure --prefix=/opt/resources/python-3.10
             make install
-            ln -s /opt/resources/python-3.10/bin/python-3.10 /usr/local/bin/
+            ln -s /opt/resources/python-3.10/bin/python3.10 /usr/local/bin/
             cd ..
             rm -rf Python-3.10.7
 
