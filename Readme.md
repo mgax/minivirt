@@ -69,6 +69,12 @@ Start a temporary VM and shell into it. When you exit the shell, the VM is destr
 miv run alpine
 ```
 
+Alternatively, add arguments, as you would with the `ssh` command.
+
+```shell
+miv run alpine uptime
+```
+
 ### SSH
 
 Add these lines to your ssh config (`~/.ssh/config`):

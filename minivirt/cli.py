@@ -118,7 +118,8 @@ def ssh(name, args):
 @click.option('--memory', default=4096)
 @click.option('--wait-for-ssh', default=30)
 @click.argument('image_name')
-def run(memory, wait_for_ssh, image_name):
+@click.argument('args', nargs=-1)
+def run(memory, wait_for_ssh, image_name, args):
     image = db.get_image(image_name)
     vm_name = hashlib.sha256(
         f'{image.name}@{time()}'.encode('utf8')
@@ -126,7 +127,7 @@ def run(memory, wait_for_ssh, image_name):
     vm = VM.create(db, vm_name, image=image, memory=memory)
     try:
         with vm.run(wait_for_ssh=wait_for_ssh):
-            vm.ssh()
+            vm.ssh(*args)
     finally:
         vm.destroy()
 
