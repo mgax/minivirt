@@ -1,6 +1,7 @@
 import hmac
 import json
 import logging
+import os
 import secrets
 import socket
 import subprocess
@@ -153,6 +154,20 @@ def build(base_name, image_name):
     image.tag(image_name)
 
 
+def start_ngrok_tunnel(port):
+    from pyngrok import ngrok
+
+    token = os.environ.get('NGROK_AUTH_TOKEN')
+    if token:
+        ngrok.set_auth_token(token)
+    else:
+        logger.warning('No ngrok token. The public URL will time out.')
+    tunnel = ngrok.connect(port, bind_tls=True)
+    logger.info('ngrok tunnel %s', tunnel.public_url)
+
+    return tunnel
+
+
 @cli.command()
 @click.argument('image')
 @click.argument('repo')
@@ -160,13 +175,11 @@ def build(base_name, image_name):
 @click.option('--concurrency', default=1)
 def serve(image, repo, memory, concurrency):
     import waitress
-    from pyngrok import ngrok
 
     github_repo = github_repo_api(fetch_github_token(), repo)
     port = find_free_port()
     listen = f'127.0.0.1:{port}'
-    tunnel = ngrok.connect(port, bind_tls=True)
-    logger.info('ngrok tunnel %s', tunnel.public_url)
+    tunnel = start_ngrok_tunnel(port)
 
     secret = secrets.token_hex()
     webhook = create_webhook(github_repo, tunnel.public_url, secret)
