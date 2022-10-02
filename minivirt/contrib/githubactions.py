@@ -171,6 +171,10 @@ def serve(image, repo, memory, concurrency):
             def start_runner():
                 executor.submit(runner, image, github_repo, memory)
 
+            for run in github_repo.get_workflow_runs(status='queued'):
+                logger.info('Queueing runner for workflow run %s', run.id)
+                start_runner()
+
             wsgi_app = Webhook(secret, start_runner)
             waitress.serve(wsgi_app, listen=listen)
 
