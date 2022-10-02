@@ -124,7 +124,7 @@ class Webhook:
     def handle_workflow_job(self, payload):
         job = payload['workflow_job']
         action = payload['action']
-        logger.info('Webhook workflow job: %s %s', job['run_id'], action)
+        logger.info('Webhook workflow job %s %s', action, job['html_url'])
         if action == 'queued':
             self.start_runner()
         return 'thanks'
