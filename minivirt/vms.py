@@ -4,6 +4,7 @@ import os
 import random
 import shutil
 import subprocess
+import tempfile
 from contextlib import contextmanager
 from functools import cached_property
 from pathlib import Path
@@ -138,7 +139,10 @@ class VM:
                 raise RuntimeError('Unknown resource type')
 
     def connect_qmp(self):
-        return qemu.QMP(self.qmp_path)
+        with tempfile.TemporaryDirectory() as tmp:
+            sock_path = Path(tmp) / 'sock'
+            sock_path.symlink_to(self.qmp_path)
+            return qemu.QMP(sock_path)
 
     @property
     def is_running(self):
@@ -190,9 +194,11 @@ class VM:
 
         self.ssh_config_path.chmod(0o644)
 
+        qmp_path = self.qmp_path.relative_to(self.path)
+
         qemu_cmd = [
             *qemu.command_prefix,
-            '-qmp', f'unix:{self.qmp_path},server,nowait',
+            '-qmp', f'unix:{qmp_path},server,nowait',
             '-m', str(self.config['memory']),
             '-boot', 'menu=on,splash-time=0',
             '-netdev', f'user,id=user,hostfwd=tcp:127.0.0.1:{ssh_port}-:22',
@@ -216,8 +222,9 @@ class VM:
             ]
 
         if daemon:
+            serial_path = self.serial_path.relative_to(self.path)
             qemu_cmd += [
-                '-serial', f'unix:{self.serial_path},server=on,wait=off',
+                '-serial', f'unix:{serial_path},server=on,wait=off',
             ]
 
             if os.fork():
@@ -226,12 +233,15 @@ class VM:
 
                 return
 
+            os.chdir(self.path)
             os.execvp(qemu_cmd[0], qemu_cmd)
 
         else:
             qemu_cmd += [
                 '-serial', 'mon:stdio',
             ]
+
+            os.chdir(self.path)
             os.execvp(qemu_cmd[0], qemu_cmd)
 
     def wait(self, timeout=10):
