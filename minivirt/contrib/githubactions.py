@@ -44,6 +44,11 @@ def create_webhook(repo, url, secret):
     return repo.create_hook('web', config, events, active=True)
 
 
+def get_workflow_run_jobs(run):
+    headers, data = run._requester.requestJsonAndCheck('GET', run.jobs_url)
+    yield from data['jobs']
+
+
 def _random_name(prefix):
     return f'{prefix}_{str(time()).replace(".", "_")}'
 
@@ -172,8 +177,10 @@ def serve(image, repo, memory, concurrency):
                 executor.submit(runner, image, github_repo, memory)
 
             for run in github_repo.get_workflow_runs(status='queued'):
-                logger.info('Queueing runner for workflow run %s', run.id)
-                start_runner()
+                for job in get_workflow_run_jobs(run):
+                    if job['status'] == 'queued':
+                        logger.info('Queueing runner for %s', job['html_url'])
+                        start_runner()
 
             wsgi_app = Webhook(secret, start_runner)
             waitress.serve(wsgi_app, listen=listen)
