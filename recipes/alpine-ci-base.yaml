@@ -6,7 +6,7 @@ steps:
     with:
       steps:
         - run: |
-            apk add build-base zlib-dev libffi-dev
+            apk add build-base zlib-dev libffi-dev openssl-dev
 
         - run: |
             curl -L https://www.python.org/ftp/python/3.8.14/Python-3.8.14.tgz | tar xz
