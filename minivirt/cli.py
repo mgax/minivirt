@@ -168,6 +168,12 @@ def fsck():
 
 
 @cli.command()
+@click.option('-n', '--dry-run', is_flag=True)
+def prune(dry_run):
+    db.prune(dry_run)
+
+
+@cli.command()
 @click.argument('remote')
 @click.argument('ref')
 @click.argument('remote_tag')

@@ -65,6 +65,9 @@ class Image:
         du_output = subprocess.check_output(['du', '-sh', self.path])
         return du_output.decode('utf8').split()[0]
 
+    def delete(self):
+        shutil.rmtree(self.path)
+
 
 class Tag:
     def __init__(self, db, name):
@@ -225,3 +228,24 @@ class DB:
                 result.errors.append(f'{vm}: {error}')
 
         return result
+
+    def prune(self, dry_run=False):
+        keep = set()
+        for tag in self.iter_tags():
+            logger.debug(
+                'Prune keeping %s tagged as %s', tag.image_id, tag.name
+            )
+            keep.add(tag.image_id)
+
+        for vm in self.iter_vms():
+            if vm.image:
+                logger.debug(
+                    'Prune keeping %s for vm %s', vm.image.name, vm.name
+                )
+                keep.add(vm.image.name)
+
+        for image in self.iter_images():
+            if image.name not in keep:
+                logger.info('Removing %s', image.name)
+                if not dry_run:
+                    image.delete()
