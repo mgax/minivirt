@@ -1,0 +1,30 @@
+from: alpine-3.15
+memory: 512
+
+steps:
+  - uses: run
+    with:
+      steps:
+        - run: |
+            apk add build-base zlib-dev libffi-dev
+
+        - run: |
+            curl -L https://www.python.org/ftp/python/3.8.14/Python-3.8.14.tgz | tar xz
+            cd Python-3.8.14
+            ./configure --prefix=/opt/resources/python-3.8
+            make install
+            ln -s /opt/resources/python-3.8/bin/python-3.8 /usr/local/bin/
+            cd ..
+            rm -rf Python-3.8.14
+
+        - run: |
+            curl -L https://www.python.org/ftp/python/3.10.7/Python-3.10.7.tgz | tar xz
+            cd Python-3.10.7
+            ./configure --prefix=/opt/resources/python-3.10
+            make install
+            ln -s /opt/resources/python-3.10/bin/python-3.10 /usr/local/bin/
+            cd ..
+            rm -rf Python-3.10.7
+
+        - run: poweroff
+          continue_on_error: true

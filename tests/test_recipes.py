@@ -8,9 +8,7 @@ recipes = (Path(__file__).resolve().parent.parent / 'recipes')
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize('path', list(recipes.glob('*.yaml')))
-def test_build_recipe(db, path):
-    if path.name == 'ubuntu-22.04.yaml':
-        pytest.skip(f'Recipe {path.name} is broken')
-    image = build(db, path)
+@pytest.mark.parametrize('name', ['alpine-3.15', 'alpine-3.16'])
+def test_build_recipe(db, name):
+    image = build(db, recipes / f'{name}.yaml')
     assert image is not None
