@@ -2,11 +2,11 @@ name: CI
 on: [push]
 
 jobs:
-  ci:
+  full_testsuite:
     runs-on: self-hosted
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
       - name: Prepare
         run: |
@@ -19,4 +19,28 @@ jobs:
         run: |
           set -xeuo pipefail
           .venv/bin/miv doctor
-          .venv/bin/pytest --runslow -vv --color=yes
+          .venv/bin/pytest -vv --color=yes --runslow
+
+  compatibility:
+    strategy:
+      matrix:
+        python: ['python3.9', 'python3.10']
+
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Prepare
+        run: |
+          set -xeuo pipefail
+          echo $PATH
+          ${{ matrix.python }} -m venv .venv
+          .venv/bin/pip3 install -e .
+          .venv/bin/pip3 install pytest
+
+      - name: Testsuite
+        run: |
+          set -xeuo pipefail
+          .venv/bin/miv doctor
+          .venv/bin/pytest -vv --color=yes
