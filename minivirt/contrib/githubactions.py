@@ -54,6 +54,17 @@ def _random_name(prefix):
     return f'{prefix}_{str(time()).replace(".", "_")}'
 
 
+def log_errors(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception:
+            logger.exception('Exception in runner thread')
+
+    return wrapper
+
+
+@log_errors
 def runner(image_name, github_repo, memory):
     from minivirt.cli import db
 
