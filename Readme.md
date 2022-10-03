@@ -209,8 +209,8 @@ The `miv githubactions build` command prepares an actions runner image:
 
 ```shell
 miv build recipes/alpine-3.15.4.yaml --tag alpine-3.15 -v
-miv build recipes/alpine-ci-base.yaml --tag alpine-ci-base -v
-miv -v githubactions build alpine-ci-base githubactions
+miv build recipes/ci-alpine.yaml --tag ci-alpine -v
+miv -v githubactions build ci-alpine githubactions
 ```
 
 Minivirt comes with a webhook listener that waits for `workflow_job` events; each time a job is queued, the listener schedules an ephemeral runner VM that will receive the job.
