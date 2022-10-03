@@ -1,0 +1,23 @@
+from: ci-alpine
+memory: 1024
+
+steps:
+  - uses: run
+    with:
+      steps:
+        - run: |
+            sed -i 's|# \(http://dl-cdn.alpinelinux.org/alpine/.*/community\)|\1|' /etc/apk/repositories
+            apk add py3-pip qemu qemu-system-x86_64 qemu-img socat curl tar git bash vim gcompat icu cdrkit
+            sed -i 's|\(root:x:0:0:root:/root:\)/bin/ash|\1/bin/bash|' /etc/passwd
+
+        - run: |
+            curl -LOs https://dot.net/v1/dotnet-install.sh
+            bash dotnet-install.sh -c 6.0
+            ln -s /root/.dotnet/dotnet /usr/local/bin
+
+        - run: |
+            mkdir actions-runner && cd actions-runner
+            curl -Ls https://github.com/actions/runner/releases/download/v2.297.0/actions-runner-linux-x64-2.297.0.tar.gz | tar xz
+
+        - run: poweroff
+          continue_on_error: true

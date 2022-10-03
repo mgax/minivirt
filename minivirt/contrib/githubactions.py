@@ -143,19 +143,6 @@ def cli():
     logging.getLogger('pyngrok').setLevel(logging.WARNING)
 
 
-@cli.command()
-@click.argument('base-name')
-@click.argument('image-name')
-def build(base_name, image_name):
-    from minivirt.contrib import ci
-
-    vm_name = _random_name('githubactionsbuild')
-    vm = ci._build(base_name, vm_name, memory=1024)
-    image = vm.commit()
-    vm.destroy()
-    image.tag(image_name)
-
-
 def start_ngrok_tunnel(port):
     from pyngrok import ngrok
 

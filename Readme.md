@@ -210,7 +210,7 @@ The `miv githubactions build` command prepares an actions runner image:
 ```shell
 miv build recipes/alpine-3.15.4.yaml --tag alpine-3.15 -v
 miv build recipes/ci-alpine.yaml --tag ci-alpine -v
-miv -v githubactions build ci-alpine githubactions
+miv build recipes/githubactions-alpine --tag githubactions-alpine -v
 ```
 
 Minivirt comes with a webhook listener that waits for `workflow_job` events; each time a job is queued, the listener schedules an ephemeral runner VM that will receive the job.
@@ -218,7 +218,7 @@ Minivirt comes with a webhook listener that waits for `workflow_job` events; eac
 The listener needs a Github PAT. It runs `git credentials fill` to retrieve the token.
 
 ```shell
-miv -v githubactions serve githubactions {repo} --memory 2048 --concurrency 2
+miv -v githubactions serve githubactions-alpine {repo} --memory 2048 --concurrency 2
 ```
 
 ### Systemd
