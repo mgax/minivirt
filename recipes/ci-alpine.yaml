@@ -18,6 +18,9 @@ steps:
             rm -rf Python-3.8.14
 
         - run: |
+            apk add python3
+
+        - run: |
             curl -L https://www.python.org/ftp/python/3.10.7/Python-3.10.7.tgz | tar xz
             cd Python-3.10.7
             ./configure --prefix=/opt/resources/python-3.10
@@ -28,3 +31,28 @@ steps:
 
         - run: poweroff
           continue_on_error: true
+
+tests:
+  - name: Python 3.8 path
+    run: which python3.8
+    expect: '/usr/local/bin/python3\.8'
+
+  - name: Python 3.9 path
+    run: which python3.9
+    expect: '/usr/bin/python3\.9'
+
+  - name: Python 3.10 path
+    run: which python3.10
+    expect: '/usr/local/bin/python3\.10'
+
+  - name: Python 3.8 version
+    run: python3.8 --version
+    expect: 'Python 3\.8\.14'
+
+  - name: Python 3.9 version
+    run: python3.9 --version
+    expect: 'Python 3\.9\.13'
+
+  - name: Python 3.10 version
+    run: python3.10 --version
+    expect: 'Python 3\.10\.7'

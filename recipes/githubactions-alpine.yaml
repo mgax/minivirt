@@ -21,3 +21,12 @@ steps:
 
         - run: poweroff
           continue_on_error: true
+
+tests:
+  - name: dotnet info
+    run: dotnet --info
+    expect: '^\.NET SDK'
+
+  - name: QEMU version
+    run: qemu-system-x86_64 -version
+    expect: '^QEMU emulator version'
