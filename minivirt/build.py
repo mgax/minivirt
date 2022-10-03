@@ -300,16 +300,20 @@ class Builder:
         for test in self.recipe.get('tests', []):
             test_name = test.get('name')
             logger.info('Running test: %r', test_name)
-            test_name = '_test'
-            self.db.get_vm(test_name).destroy()
+            test_vm_name = '_test'
+            self.db.get_vm(test_vm_name).destroy()
             test_vm = VM.create(
                 db=self.db,
-                name=test_name,
+                name=test_vm_name,
                 image=self.image,
                 memory=str(self.recipe['memory']),
             )
             with test_vm.run(wait_for_ssh=30):
-                out = test_vm.ssh(test['run'], capture=True)
+                try:
+                    out = test_vm.ssh(test['run'], capture=True)
+                except Exception:
+                    logger.exception('Test %r error.', test_name)
+                    raise ImageTestError
                 logger.debug('Output: %r', out)
                 expect = test['expect'].encode('utf8')
                 if re.match(expect, out):
