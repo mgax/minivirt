@@ -9,7 +9,7 @@ from time import time
 import click
 
 from . import build, qemu, remotes
-from .contrib import githubactions, systemd
+from .contrib import githubactions
 from .db import DB
 from .exceptions import VmExists, VmIsRunning
 from .vms import VM
@@ -217,6 +217,5 @@ def pull(remote, remote_tag, tag):
 
 
 cli.add_command(remotes.cli, name='remote')
-cli.add_command(systemd.cli, name='systemd')
 cli.add_command(build.cli, name='build')
 cli.add_command(githubactions.cli, name='githubactions')
