@@ -1,7 +1,9 @@
 import logging
 import re
 import shutil
+import socket
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -9,7 +11,7 @@ import click
 import yaml
 
 from . import qemu
-from .contrib.alpine import Console
+from .utils import waitfor, WaitTimeout
 from .vms import VM
 
 logger = logging.getLogger(__name__)
@@ -32,6 +34,72 @@ VAGRANT_PUBKEY = (
     'RdK8jlqm8tehUc9c9WhQ== '
     'vagrant insecure public key'
 )
+
+
+class Console:
+    def __init__(self, path):
+        logger.debug('Waiting for %s to show up ...', path)
+        waitfor(path.exists)
+        logger.debug('Connecting ...')
+        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        waitfor(lambda: self.sock.connect(str(path)) or True)
+        self.sock.settimeout(1)
+        logger.debug('Connection successful')
+
+    def recv(self):
+        chunk = self.sock.recv(10000)
+        logger.debug('Received %r', chunk)
+        return chunk
+
+    def wait_for_pattern(
+        self, pattern, limit=1000, timeout=300, verbose=False
+    ):
+        buffer = b''
+
+        def look_for_pattern():
+            nonlocal buffer
+
+            while not re.search(pattern, buffer, re.DOTALL):
+                try:
+                    chunk = self.recv()
+                    if verbose:
+                        sys.stdout.buffer.write(chunk)
+                        sys.stdout.buffer.flush()
+                    buffer += chunk
+                    buffer = buffer[-limit:]
+                except OSError:
+                    return
+
+            return True
+
+        try:
+            waitfor(look_for_pattern, timeout=timeout)
+        except (OSError, WaitTimeout):
+            logger.warning('Timeout waiting for %r; got %r', pattern, buffer)
+            raise
+
+        return buffer
+
+    def send(self, message):
+        logger.debug('Sending %r', message)
+        self.sock.sendall(message)
+
+    def wait_for_poweroff(self, vm, verbose=False):
+        def forward_console_until_poweroff():
+            while True:
+                try:
+                    chunk = self.recv()
+                except OSError:
+                    break
+                if verbose:
+                    sys.stdout.buffer.write(chunk)
+                    sys.stdout.buffer.flush()
+                if not chunk:
+                    break
+
+            return not vm.qmp_path.exists()
+
+        waitfor(forward_console_until_poweroff, timeout=300)
 
 
 def build_step(func):

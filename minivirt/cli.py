@@ -9,7 +9,7 @@ from time import time
 import click
 
 from . import build, qemu, remotes
-from .contrib import alpine, ci, githubactions, systemd
+from .contrib import ci, githubactions, systemd
 from .db import DB
 from .exceptions import VmExists, VmIsRunning
 from .vms import VM
@@ -216,7 +216,6 @@ def pull(remote, remote_tag, tag):
     db.remotes.get(remote).pull(remote_tag.format(arch=qemu.arch), tag)
 
 
-cli.add_command(alpine.cli, name='alpine')
 cli.add_command(ci.cli, name='ci')
 cli.add_command(remotes.cli, name='remote')
 cli.add_command(systemd.cli, name='systemd')
