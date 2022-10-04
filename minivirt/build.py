@@ -135,7 +135,7 @@ def create_disk_image(builder, size, attach=None, filename='disk.qcow2'):
 
 
 @build_step
-def download(builder, url, attach=None, filename=None):
+def download(builder, url, resize=None, attach=None, filename=None):
     url = interpolate(url)
     if filename is None:
         filename = url.split('/')[-1]
@@ -143,6 +143,9 @@ def download(builder, url, attach=None, filename=None):
     assert not path.exists()
     cache_path = builder.db.cache.get(url)
     shutil.copy(cache_path, path)
+
+    if resize:
+        subprocess.check_call(['qemu-img', 'resize', path, resize])
 
     if attach:
         attach_to_vm(builder, filename=filename, **attach)

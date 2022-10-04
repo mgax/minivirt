@@ -6,6 +6,7 @@ steps:
     with:
       url: https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64.img
       filename: disk.qcow2
+      resize: 10G
       attach:
         type: disk
 
@@ -14,6 +15,7 @@ steps:
     with:
       url: https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
       filename: disk.qcow2
+      resize: 10G
       attach:
         type: disk
 
