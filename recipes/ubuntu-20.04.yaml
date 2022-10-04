@@ -1,0 +1,56 @@
+memory: 512
+
+steps:
+  - uses: download
+    if_arch: 'aarch64'
+    with:
+      url: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-arm64.img
+      filename: disk.qcow2
+      resize: 10G
+      attach:
+        type: disk
+
+  - uses: download
+    if_arch: 'x86_64'
+    with:
+      url: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
+      filename: disk.qcow2
+      resize: 10G
+      attach:
+        type: disk
+
+  - uses: cloud_init_iso
+    with:
+      filename: cloud-init.iso
+      cloud_config: |
+        disable_root: false
+        ssh_authorized_keys:
+          - {vagrant_pubkey}
+        users:
+          - name: root
+            password: ''
+            ssh_authorized_keys:
+              - {vagrant_pubkey}
+      attach:
+        type: cdrom
+
+  - uses: run_console
+    with:
+      steps:
+        - name: Wait for cloud-init
+          wait: "\r\nubuntu login: "
+
+        - uses: ssh_poweroff
+
+  - uses: detach
+    with:
+      filename: cloud-init.iso
+
+tests:
+  - name: Ubuntu release number
+    run: cat /etc/issue
+    expect: '^Ubuntu 20\.04'
+
+  - name: Kernel version
+    run: uname -a
+    expect: '^Linux ubuntu 5\.4\.'
