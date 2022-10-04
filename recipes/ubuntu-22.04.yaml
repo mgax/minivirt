@@ -51,4 +51,4 @@ tests:
 
   - name: Kernel version
     run: uname -a
-    expect: '^Linux ubuntu 5.15'
+    expect: '^Linux ubuntu 5\.15\.'
