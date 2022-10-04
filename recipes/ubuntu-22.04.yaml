@@ -32,11 +32,13 @@ steps:
       attach:
         type: cdrom
 
-  - uses: run
+  - uses: run_console
     with:
       steps:
-        - run: poweroff
-          continue_on_error: true
+        - name: Wait for cloud-init
+          wait: "\r\nubuntu login: "
+
+        - uses: ssh_poweroff
 
   - uses: detach
     with:

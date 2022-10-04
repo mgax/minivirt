@@ -241,6 +241,15 @@ class Builder:
 
         logger.info('Step: %r', name)
 
+        if uses == 'ssh_poweroff':
+            # XXX ubuntu cloud images on x86_64 don't accept acpi poweroff,
+            # so we hack it by doing poweroff via ssh
+            try:
+                self.vm.ssh('poweroff')
+            except subprocess.CalledProcessError:
+                pass
+            return
+
         if uses is not None:
             func = BUILD_STEPS[step['uses']]
             func(self, **step.get('with', {}))
