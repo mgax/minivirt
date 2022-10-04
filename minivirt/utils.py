@@ -10,13 +10,15 @@ class WaitTimeout(RuntimeError):
     pass
 
 
-def waitfor(condition, timeout=10, poll_interval=0.1):
+def waitfor(condition, help=None, timeout=10, poll_interval=0.1):
+    if not help:
+        help = (condition.__doc__ or repr(condition)).strip()
     expires = time() + timeout
     while time() < expires:
-        logger.debug('Polling for %r ...', condition)
+        logger.debug('Polling for %s ...', help)
         rv = condition()
         if rv:
-            logger.debug('Polling for %r successful: %r.', condition, rv)
+            logger.debug('Polling for %s successful: %r.', help, rv)
             return rv
         sleep(poll_interval)
 
