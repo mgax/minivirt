@@ -323,4 +323,4 @@ class VM:
     def fsck(self):
         if self.config.get('image'):
             if not self.db.image_path(self.config['image']).is_dir():
-                yield f'missing image {self.image}'
+                yield f'missing image {self.config.get("image")}'
