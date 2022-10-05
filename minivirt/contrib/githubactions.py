@@ -171,7 +171,7 @@ def start_ngrok_tunnel(port):
 @cli.command()
 @click.argument('image')
 @click.argument('repo')
-@click.option('--memory', default=512)
+@click.option('-m', '--memory', default=1024)
 @click.option('--concurrency', default=1)
 def serve(image, repo, memory, concurrency):
     import waitress

@@ -54,7 +54,7 @@ def doctor():
 @cli.command()
 @click.argument('image')
 @click.argument('name')
-@click.option('--memory', default=4096)
+@click.option('-m', '--memory', default=1024)
 @click.option('--disk', default=None)
 def create(image, name, **kwargs):
     try:
@@ -119,7 +119,7 @@ def ssh(name, args):
 
 
 @cli.command()
-@click.option('--memory', default=4096)
+@click.option('-m', '--memory', default=1024)
 @click.option('--wait-for-ssh', default=30)
 @click.argument('image_name')
 @click.argument('args', nargs=-1)
