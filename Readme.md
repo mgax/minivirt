@@ -1,238 +1,73 @@
-# MiniVirt – lightweight virtual machine manager
+# Minivirt
 
-## Motivation
+VMs should be easy.
 
-Because VMs should be as easy as containers.
+[![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/P72AGcEWHZ)
 
-### Neat things you can do with MiniVirt
+_Minivirt_ is a lightweight [QEMU][] manager that provides a Docker-like user experience. The default image is based on [Alpine Linux](https://alpinelinux.org/), which is tiny and fast: 50MB compressed disk image, boots to SSH in second(s).
 
-* Run a throwaway desktop environment.
-* Host your own GitHub Actions runner, so you don't pay for actions minutes, and are in control of the runtime environment. This is how the MiniVirt CI is hosted because it needs `/dev/kvm`.
-* Run a test suite for Ansible playbooks.
-
-The default VM is based on [Alpine Linux](https://alpinelinux.org/), which is tiny (50MB compressed disk image) and fast (boots to SSH in under 3 seconds).
-
-### So why not use containers instead?
-
-* Features: you don't have control of the kernel so you can't e.g. mount filesystems or load kernel modules.
-* Desktop: containers are meant to run headless. With a VM, you can use its emulated display to run a graphic environment.
-* Isolation: the container [is not a security boundary](https://blog.aquasec.com/container-isolation).
-* Nesting: it's possible to nest containers, but it involves giving the parent container elevated permissions. Nesting VMs maintains isolation.
-* Diversity: run any operating system that you can install from an ISO image.
+[QEMU]: https://www.qemu.org/
 
 ## Installation
 
-### Requirements
+1. Install QEMU and other dependencies.
+    * MacOS: `brew install qemu socat`
+    * Debian: `apt install qemu-kvm qemu-utils qemu-efi-aarch64 socat`
+    * Alpine: `apk add py3-pip qemu qemu-system-x86_64 qemu-img socat tar`
 
-MiniVirt runs on:
-
-* Linux with x86_64 processor and hardware virutalization enabled.
-* Mac OS with Apple M1 processor. Does not support nested virutalization.
-
-### Dependencies
-
-You'll need [qemu][], [python3][] and [socat][] installed.
-
-[qemu]: https://www.qemu.org/
-[python3]: https://www.python.org/
-[socat]: http://www.dest-unreach.org/socat/
-
-* MacOS: `brew install qemu socat`
-* Debian: `apt install qemu-system-x86 qemu-utils socat`
-* Alpine: `apk add py3-pip qemu qemu-system-x86_64 qemu-img socat tar git`
-
-### Instructions
-
-```shell
-pip3 install git+https://github.com/mgax/minivirt
-miv doctor  # run a diagnostic check
-```
-
-The images and VMs will be stored in `~/.cache/minivirt/`.
-
-## Usage
-
-```shell
-miv remote add default https://f003.backblazeb2.com/file/minivirt
-miv pull default 'alpine-3.15.4-{arch}' alpine  # '{arch}' is automatically replaced with your architecture.
-miv create alpine foo
-miv start foo --display
-# ... interact with the VM ...
-miv destroy foo
-```
-
-### Run
-
-Start a temporary VM and shell into it. When you exit the shell, the VM is destroyed.
-
-```shell
-miv run alpine
-```
-
-Alternatively, add arguments, as you would with the `ssh` command.
-
-```shell
-miv run alpine uptime
-```
-
-### SSH
-
-Add these lines to your ssh config (`~/.ssh/config`):
-
-```ssh-config
-Host *.miv
-  Include ~/.cache/minivirt/*/ssh-config
-```
-
-Start the VM, then log into it using SSH:
-
-```shell
-miv start foo --daemon --wait-for-ssh=30
-ssh foo.miv
-# ... do your thing ...
-ssh foo.miv poweroff
-```
-
-### VMs
-
-Show VMs in the database:
-
-```shell
-miv ps -a
-```
-
-Gracefully stop a VM by sending a poweroff request:
-
-```shell
-miv stop foo
-```
-
-Delete a VM and all its files:
-
-```shell
-miv destroy foo
-```
-
-### Images
-
-Display images in the database:
-
-```shell
-miv images
-```
-
-Commit a VM as an image:
-
-```shell
-miv commit foo bar
-```
-
-Save the image as a TAR archive:
-
-```shell
-miv save bar | gzip -1 > ~/bar.tgz
-```
-
-Later, load the image:
-
-```shell
-zcat ~/bar.tgz | miv load bar
-```
-
-If you get unexpected errors, run a database check:
-
-```shell
-miv fsck
-```
-
-## Development
-
-* Create a virtualenv so you don't interfere with gobally-installed packages:
+1. Install _Minivirt_ and run a checkup.
     ```shell
-    python3 -m venv .venv
-    source .venv/bin/activate
+    pip3 install minivirt
+    miv doctor
     ```
-* Install the repo in edit mode and development dependencies:
+1. Pull an image and start a VM.
     ```shell
-    pip3 install -e .
-    pip3 install pytest
-    ```
-* Run the test suite:
-    ```shell
-    pytest
-    # If you're not in a hurry, run the slow tests too:
-    pytest --runslow
+    miv remote add default https://f003.backblazeb2.com/file/minivirt
+    miv pull default alpine-{arch} alpine  # {arch} is automatically replaced with your architecture.
+    miv run alpine
     ```
 
-## Extra
+The `miv run` command will create an ephemeral VM and open an SSH session into it. When you exit the session, the VM is destroyed.
 
-### Recipes
+## Persistent VMs
 
-Minivirt can build images from recipes, which are YAML files, with a syntax inspired by Github Actions workflows.
+The images and VMs are stored in `~/.cache/minivirt/`.
 
+Create a VM with the `create` command:
 ```shell
-miv build recipes/alpine-3.16.yaml --tag alpine-3.16-{arch} -v
+miv create alpine myvm
 ```
 
-The `miv alpine` commands will automate the download and installation of Alpine Linux. That's how the _default_ images are created:
-
+Start the VM with the terminal attached to its serial console:
 ```shell
-miv alpine download 3.15.4 alpine-iso
-miv -v alpine install alpine-iso alpine-3.15.4 10G
+miv start myvm
 ```
 
-### Image repositories
-
-Any S3-compatible object store can serve as an image repository. The following environment variables are read:
-
-* `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`: authentication credentials.
-* `AWS_ENDPOINT_URL` _(optional)_: if the object store is not hosted on the AWS public cloud, this should point to the appropriate endpoint.
-
-The bucket name is taken from the last part of the remote's URL, e.g. `minivirt` for the default repository.
-
-The `miv push` command uploads an image:
-
+Gracefully stop the VM by sending an ACPI poweroff:
 ```shell
-miv remote add default https://f003.backblazeb2.com/file/minivirt
-miv push default alpine-3.15.4 alpine-3.15.4-aarch64
+miv stop myvm
 ```
 
-### GitHub Actions
-
-Install extra dependencies:
-
+Destroy the VM to remove its disk image and other resources:
 ```shell
-pip install -e minivirt[githubactions]
+miv destroy myvm
 ```
 
-The `miv githubactions build` command prepares an actions runner image:
-
+Inspect the VMs:
 ```shell
-miv build recipes/alpine-3.15.4.yaml --tag alpine-3.15 -v
-miv build recipes/ci-alpine.yaml --tag ci-alpine -v
-miv build recipes/githubactions-alpine --tag githubactions-alpine -v
+miv ps
+miv ps -a  # also shows stopped VMs
 ```
 
-Minivirt comes with a webhook listener that waits for `workflow_job` events; each time a job is queued, the listener schedules an ephemeral runner VM that will receive the job.
+### Graphics
 
-The listener needs a Github PAT. It runs `git credentials fill` to retrieve the token.
-
+Start the VM in the background and connect a display to it:
 ```shell
-miv -v githubactions serve githubactions-alpine {repo} --memory 2048 --concurrency 2
+miv create alpine myvm
+miv start myvm --daemon --display
 ```
 
-### Desktop environment
-
-It's easy to install a graphic environment in Alpine:
-
-```shell
-miv remote add default https://f003.backblazeb2.com/file/minivirt
-miv pull default 'alpine-3.15.4-{arch}' alpine  # '{arch}' is automatically replaced with your architecture.
-miv create alpine foo
-miv start foo --display
-```
-
-Then, log in as `root`, and run:
+Log in as `root`, and run:
 
 ```shell
 setup-xorg-base
@@ -242,8 +77,115 @@ startx
 
 To make the screen bigger, right-click on the desktop, hover on _Applications_, then _Settings_, and click _Display_. Select another resolution like "1440x900" and click "apply".
 
-WHen you're done, run `poweroff` in a shell, and the VM will shut down cleanly.
+## Images
 
-## Get in touch
+Show images in the database:
 
-[Discord server](https://discord.gg/P72AGcEWHZ)
+```shell
+miv images
+```
+
+Commit a VM as an image:
+
+```shell
+miv commit myvm myimage
+```
+
+Save the image as a TAR archive:
+
+```shell
+miv save myimage | gzip -1 > ~/myimage.tgz
+```
+
+Later, load the image:
+
+```shell
+zcat ~/myimage.tgz | miv load myimage
+```
+
+To make sure the images and VMs are consistent, run a database check:
+
+```shell
+miv fsck
+```
+
+### Image repositories
+
+Add a remote repository:
+
+```shell
+miv remote add default https://f003.backblazeb2.com/file/minivirt
+```
+
+Pull an image. `{arch}` will be interpolated to the machine architecture.
+
+```shell
+miv pull default alpine-{arch} alpine
+```
+
+To host an image repository, you need an S3-compatible object store (e.g. AWS S3, Backblaze B2). Set the following environment variables:
+
+* `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`: authentication credentials.
+* `AWS_ENDPOINT_URL` _(optional)_: if the object store is not hosted on the AWS public cloud, this should point to the appropriate endpoint.
+
+The bucket name is taken from the last part of the remote's URL, e.g. `minivirt` for the default repository.
+
+Run `miv push` to upload an image:
+
+```shell
+miv push default alpine-3.16 alpine-3.16-aarch64
+```
+
+## Development
+
+1. Create a virtualenv so you don't interfere with gobally-installed packages:
+    ```shell
+    python3 -m venv .venv
+    source .venv/bin/activate
+    ```
+
+1. Install the repo in edit mode and development dependencies:
+    ```shell
+    pip3 install -e .
+    pip3 install pytest
+    ```
+
+1. Run the test suite:
+    ```shell
+    pytest
+    pytest --runslow  # if you're not in a hurry
+    ```
+
+### Recipes
+
+Minivirt can build images from recipes, which are YAML files, with a syntax inspired by Github Actions workflows.
+
+```shell
+miv build recipes/alpine-3.16.yaml --tag alpine-3.16 -v
+```
+
+The `-v` flag directs the output of the build (serial console or SSH) to stdout.
+
+### GitHub Actions self-hosted runners
+
+Minivirt comes with a server that launches GitHub Actions runners when a workflow job is queued. Each runner is ephemeral and runs in its own VM.
+
+1. Install extra dependencies:
+    ```shell
+    pip install -e minivirt[githubactions]
+    ```
+
+1. Build an actions runner image:
+    ```shell
+    miv build recipes/alpine-3.15.yaml --tag alpine-3.15 -v
+    miv build recipes/ci-alpine.yaml --tag ci-alpine -v
+    miv build recipes/githubactions-alpine.yaml --tag githubactions-alpine -v
+    ```
+
+1. Run the server. To interact with the GitHub API, it needs a [GitHub PAT][], and runs `git credentials fill` to retrieve it. It uses [ngrok][] to listen for webhook events; to avoid the ngrok session timing out, set a token in the `NGROK_AUTH_TOKEN` environment variable.
+    ```shell
+    miv -v githubactions serve githubactions-alpine {repo}
+    ```
+
+[GitHub PAT]: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
+[ngrok]: https://ngrok.com/
