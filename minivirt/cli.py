@@ -10,7 +10,7 @@ import click
 
 from . import build, qemu, remotes
 from .contrib import githubactions
-from .db import DB
+from .db import DB, ImageNotFound
 from .exceptions import VmExists, VmIsRunning
 from .vms import VM
 
@@ -57,7 +57,11 @@ def doctor():
 @click.option('--memory', default=4096)
 @click.option('--disk', default=None)
 def create(image, name, **kwargs):
-    image = db.get_image(image)
+    try:
+        image = db.get_image(image)
+    except ImageNotFound:
+        raise click.ClickException(f'Image {image!r} not found')
+
     try:
         VM.create(db, name, image=image, **kwargs)
     except VmExists:
@@ -120,7 +124,10 @@ def ssh(name, args):
 @click.argument('image_name')
 @click.argument('args', nargs=-1)
 def run(memory, wait_for_ssh, image_name, args):
-    image = db.get_image(image_name)
+    try:
+        image = db.get_image(image_name)
+    except ImageNotFound:
+        raise click.ClickException(f'Image {image_name!r} not found')
     vm_name = hashlib.sha256(
         f'{image.name}@{time()}'.encode('utf8')
     ).hexdigest()

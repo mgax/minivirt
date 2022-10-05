@@ -142,6 +142,10 @@ class FsckResult:
         self.errors = []
 
 
+class ImageNotFound(Exception):
+    pass
+
+
 class DB:
     def __init__(self, path):
         self.path = path
@@ -162,6 +166,8 @@ class DB:
         path = self.images_path / name
         if path.is_symlink():
             name = path.resolve().name
+        if not (self.images_path / name).exists():
+            raise ImageNotFound
         return Image(self, name)
 
     def remove_image(self, name):
