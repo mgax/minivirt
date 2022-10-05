@@ -79,10 +79,16 @@ To make the screen bigger, right-click on the desktop, hover on _Applications_, 
 
 ## Images
 
+_Minivirt_ maintains a database of images identified by their SHA256 checksum. They may have any number of tags.
+
 Show images in the database:
 
 ```shell
-miv images
+% miv images
+5446f671 1.4G ubuntu-22.04
+84200bbd 115M alpine-3.15
+8ad24d9f 1.4G ubuntu-20.04
+c86a9115 114M alpine alpine-3.16
 ```
 
 Commit a VM as an image:
@@ -107,6 +113,18 @@ To make sure the images and VMs are consistent, run a database check:
 
 ```shell
 miv fsck
+```
+
+To remove an image, first untag it. This only removes the tag, not the image itself.
+
+```shell
+miv untag myimage
+```
+
+The image is removed during prune:
+
+```shell
+miv prune
 ```
 
 ### Image repositories
@@ -158,13 +176,26 @@ miv push default alpine-3.16 alpine-3.16-aarch64
 
 ### Recipes
 
-Minivirt can build images from recipes, which are YAML files, with a syntax inspired by Github Actions workflows.
+Minivirt can build images from recipes, which are YAML files, with a syntax inspired by Github Actions workflows. [The _recipes_ directory](recipes/) contains some examples.
 
 ```shell
 miv build recipes/alpine-3.16.yaml --tag alpine-3.16 -v
 ```
 
 The `-v` flag directs the output of the build (serial console or SSH) to stdout.
+
+### Python API
+
+_Minivirt_ is written in Python and offers a straightforward API:
+
+```python
+from minivirt.cli import db
+
+alpine = db.get_image('alpine')
+myvm = VM.create(db, 'myvm', image=alpine, memory=512)
+with myvm.run(wait_for_ssh=30):
+    print(myvm.ssh('uname -a', capture=True))
+```
 
 ### GitHub Actions self-hosted runners
 
