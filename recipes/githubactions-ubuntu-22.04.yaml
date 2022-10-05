@@ -1,0 +1,25 @@
+from: ubuntu-22.04
+memory: 1024
+
+steps:
+  - uses: run
+    with:
+      steps:
+        - run: |
+            apt-get install -qq --no-install-recommends qemu-kvm
+
+        - run: |
+            mkdir actions-runner && cd actions-runner
+            curl -Ls https://github.com/actions/runner/releases/download/v2.297.0/actions-runner-linux-x64-2.297.0.tar.gz | tar xz
+
+        - run: poweroff
+          continue_on_error: true
+
+tests:
+  - name: dotnet info
+    run: dotnet --info
+    expect: '^\.NET SDK'
+
+  - name: QEMU version
+    run: qemu-system-x86_64 -version
+    expect: '^QEMU emulator version'
