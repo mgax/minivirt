@@ -39,7 +39,7 @@ def test_commit_run(db, vm):
         bar = VM.create(
             db, 'bar', image=db.get_image('newly-committed-image'), memory=512
         )
-        with bar.run(wait_for_ssh=30):
+        with bar.run(wait_for_ssh=60):
             out = bar.ssh('ls', capture=True)
         assert out.strip() == b'marker-file'
 

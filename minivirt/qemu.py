@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 machine = subprocess.check_output(['uname', '-m']).decode('utf8').strip()
 
-if machine == 'arm64':
+if machine in ['arm64', 'aarch64']:
     arch = 'aarch64'
     binary = 'qemu-system-aarch64'
     command_prefix = [
@@ -51,6 +51,10 @@ elif kernel == 'Linux':
         '-accel', 'kvm',
     ]
     genisoimage_cmd = 'genisoimage'
+    if machine == 'aarch64':
+        command_prefix += [
+            '-bios', '/usr/share/qemu-efi-aarch64/QEMU_EFI.fd',
+        ]
 
 else:
     raise RuntimeError(f'Unknown kernel {kernel!r}')
