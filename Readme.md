@@ -17,7 +17,7 @@ _Minivirt_ is a lightweight [QEMU][] manager that provides a Docker-like user ex
 
 1. Install _Minivirt_ and run a checkup.
     ```shell
-    pip3 install minivirt
+    pip3 install minivirt --pre
     miv doctor
     ```
 1. Pull an image and start a VM.

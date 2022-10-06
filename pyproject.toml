@@ -1,5 +1,28 @@
+[tool.poetry]
+name = "minivirt"
+version = "0.1b1"
+description = ""
+authors = ["Alex Morega <alex@grep.ro>"]
+readme = "Readme.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+click = "^8.1.3"
+PyYAML = "^6.0"
+boto3 = "^1.24.87"
+poetry = { version = "^1.2.1", optional = true }
+pytest = { version = "^7.1.3", optional = true }
+PyGithub = { version = "^1.55", optional = true }
+pyngrok = { version = "^5.1.0", optional = true }
+waitress = { version = "^2.1.2", optional = true }
+
+[tool.poetry.extras]
+devel = ["poetry", "pytest"]
+githubactions = ["pygithub", "pyngrok", "waitress"]
+
+[tool.poetry.scripts]
+miv = "minivirt.cli:cli"
+
 [build-system]
-requires = [
-    "setuptools>=42",
-]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
