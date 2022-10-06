@@ -4,6 +4,7 @@ version = "0.1b1"
 description = ""
 authors = ["Alex Morega <alex@grep.ro>"]
 readme = "Readme.md"
+repository = "https://github.com/mgax/minivirt"
 
 [tool.poetry.dependencies]
 python = "^3.8"
