@@ -120,7 +120,7 @@ def ssh(name, args):
 
 @cli.command()
 @click.option('-m', '--memory', default=1024)
-@click.option('--wait-for-ssh', default=30)
+@click.option('--wait-for-ssh', default=60)
 @click.argument('image_name')
 @click.argument('args', nargs=-1)
 def run(memory, wait_for_ssh, image_name, args):

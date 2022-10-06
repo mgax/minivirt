@@ -1,0 +1,38 @@
+memory: 512
+steps:
+  - uses: download
+    if_arch: 'x86_64'
+    with:
+      url: https://geo.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2
+      filename: disk.qcow2
+      attach:
+        type: disk
+
+  - uses: cloud_init_iso
+    with:
+      filename: cloud-init.iso
+      cloud_config: |
+        disable_root: false
+        users:
+          - name: root
+            ssh_authorized_keys:
+              - {vagrant_pubkey}
+      attach:
+        type: cdrom
+
+  - uses: run_console
+    with:
+      steps:
+        - name: Wait for cloud-init
+          wait: "Cloud-init .{,15} finished at "
+
+        - uses: ssh_poweroff
+
+tests:
+  - name: Pacman version
+    run: pacman --version
+    expect: 'Pacman Development Team'
+
+  - name: Kernel version
+    run: uname -a
+    expect: '^Linux archlinux'

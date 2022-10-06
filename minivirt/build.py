@@ -320,7 +320,7 @@ class Builder:
                 image=self.image,
                 memory=str(self.recipe['memory']),
             )
-            with test_vm.run(wait_for_ssh=30):
+            with test_vm.run(wait_for_ssh=60):
                 try:
                     out = test_vm.ssh(test['run'], capture=True)
                 except Exception:
