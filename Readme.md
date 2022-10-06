@@ -14,6 +14,7 @@ _Minivirt_ is a lightweight [QEMU][] manager that provides a Docker-like user ex
     * MacOS: `brew install qemu socat`
     * Debian: `apt install qemu-kvm qemu-utils qemu-efi-aarch64 socat`
     * Alpine: `apk add py3-pip qemu qemu-system-x86_64 qemu-img socat tar`
+    * Arch: `pacman -S python-pip qemu-base socat`
 
 1. Install _Minivirt_ and run a checkup.
     ```shell
