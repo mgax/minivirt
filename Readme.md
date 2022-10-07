@@ -233,3 +233,9 @@ Minivirt comes with a server that launches GitHub Actions runners when a workflo
 
 [GitHub PAT]: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
 [ngrok]: https://ngrok.com/
+
+## Get in touch
+
+For feedback, support, and contributions, visit:
+* [The Discord server](https://discord.gg/P72AGcEWHZ).
+* [Discussions](https://github.com/mgax/minivirt/discussions) on GitHub.
