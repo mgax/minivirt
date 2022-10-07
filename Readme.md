@@ -30,9 +30,26 @@ _Minivirt_ is a lightweight [QEMU][] manager that provides a Docker-like user ex
 
 The `miv run` command will create an ephemeral VM and open an SSH session into it. When you exit the session, the VM is destroyed.
 
-## Persistent VMs
+## Under the hood
 
-The images and VMs are stored in `~/.cache/minivirt/`.
+The actual work of emulating virtual machines is done by QEMU. It runs in many environments, which means we can provide (mostly) the same features everywhere.
+
+Virtual machines run as user processes, no root privileges necessary. The user does however need permissions for hardware virtualization (e.g. access to `/dev/kvm` on Linux).
+
+It's possible to interact with the VM in three ways:
+* Serial console: this is the default for `miv start`.
+* Graphical display: enabled by the `--display` argument.
+* SSH: `miv run` connects through SSH, using the [Vagrant well-known SSH key](https://github.com/hashicorp/vagrant/tree/main/keys). Also, `miv ssh` can shell into a running VM.
+
+The QEMU VM is set up with [User Networking](https://wiki.qemu.org/Documentation/Networking#User_Networking_.28SLIRP.29), which doesn't interfere with the host's network stack, and the guest SSH port is forwarded to a random port on _localhost_.
+
+Minivirt manages [images](#images), which are essentially read-only, reusable virtual machine qcow2 disks; and [VMs](#persistent-vms), with their own [copy-on-write](https://en.wikibooks.org/wiki/QEMU/Images#Copy_on_write) disk, which uses the image disk as its backing file. Everything is stored in `~/.cache/minivirt/`.
+
+### Doctor
+
+The `miv doctor` command runs a checkup to help with troubleshooting. It checks to see if `qemu-system-{arch}`, `qemu-img`, `socat` and `tar` are installed, and if `/dev/kvm` is usable.
+
+## Persistent VMs
 
 Create a VM with the `create` command:
 ```shell
