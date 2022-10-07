@@ -119,7 +119,7 @@ miv build alpine-3.16.yaml --tag alpine -v
 
 The `-v` flag directs the output of the build (serial console or SSH) to stdout.
 
-The image is now in the database.
+The image is now in the database:
 
 ```shell
 miv run alpine
@@ -138,13 +138,13 @@ miv commit myvm myimage
 Save the image as a TAR archive:
 
 ```shell
-miv save myimage | gzip -1 > ~/myimage.tgz
+miv save myimage | gzip -1 > myimage.tgz
 ```
 
 Later, load the image:
 
 ```shell
-zcat ~/myimage.tgz | miv load myimage
+zcat myimage.tgz | miv load myimage
 ```
 
 ### Database maintenance
@@ -181,7 +181,7 @@ Pull an image. `{arch}` will be interpolated to the machine architecture.
 miv pull default alpine-{arch} alpine
 ```
 
-To host an image repository, you need an S3-compatible object store (e.g. AWS S3, Backblaze B2). Set the following environment variables:
+To host an image repository, you need an object store (e.g. [Amazon S3](https://aws.amazon.com/s3/), [Backblaze B2](https://www.backblaze.com/b2/), [MinIO](https://min.io/), etc). Set the following environment variables:
 
 * `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`: authentication credentials.
 * `AWS_ENDPOINT_URL` _(optional)_: if the object store is not hosted on the AWS public cloud, this should point to the appropriate endpoint.
@@ -196,6 +196,12 @@ miv push default alpine-3.16 alpine-3.16-aarch64
 
 ## Development
 
+1. Clone the repository:
+    ```shell
+    git clone https://github.com/mgax/minivirt
+    cd minivirt
+    ```
+
 1. Create a virtualenv so you don't interfere with gobally-installed packages:
     ```shell
     python3 -m venv .venv
@@ -204,8 +210,7 @@ miv push default alpine-3.16 alpine-3.16-aarch64
 
 1. Install the repo in edit mode and development dependencies:
     ```shell
-    pip3 install -e .
-    pip3 install pytest
+    pip install -e '.[devel]'
     ```
 
 1. Run the test suite:
