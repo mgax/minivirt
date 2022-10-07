@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "minivirt"
-version = "0.1b1"
-description = ""
+version = "0.1b2"
+description = "Painless VM management from the CLI"
 authors = ["Alex Morega <alex@grep.ro>"]
 readme = "Readme.md"
 repository = "https://github.com/mgax/minivirt"
