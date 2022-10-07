@@ -92,6 +92,26 @@ Show images in the database:
 c86a9115 114M alpine alpine-3.16
 ```
 
+### Building an image
+
+Minivirt can build images from _recipes_, which are YAML files, with a syntax inspired by [GitHub Actions workflows][]. Download any file from [the `/recipes` directory](recipes/) and run:
+
+```shell
+miv build alpine-3.16.yaml --tag alpine -v
+```
+
+The `-v` flag directs the output of the build (serial console or SSH) to stdout.
+
+The image is now in the database.
+
+```shell
+miv run alpine
+```
+
+[GitHub Actions workflows]: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+
+### Other image operations
+
 Commit a VM as an image:
 
 ```shell
@@ -109,6 +129,8 @@ Later, load the image:
 ```shell
 zcat ~/myimage.tgz | miv load myimage
 ```
+
+### Database maintenance
 
 To make sure the images and VMs are consistent, run a database check:
 
@@ -174,16 +196,6 @@ miv push default alpine-3.16 alpine-3.16-aarch64
     pytest
     pytest --runslow  # if you're not in a hurry
     ```
-
-### Recipes
-
-Minivirt can build images from recipes, which are YAML files, with a syntax inspired by Github Actions workflows. [The _recipes_ directory](recipes/) contains some examples.
-
-```shell
-miv build recipes/alpine-3.16.yaml --tag alpine-3.16 -v
-```
-
-The `-v` flag directs the output of the build (serial console or SSH) to stdout.
 
 ### Python API
 
