@@ -41,7 +41,7 @@ It's possible to interact with the VM in three ways:
 * Graphical display: enabled by the `--display` argument.
 * SSH: `miv run` connects through SSH, using the [Vagrant well-known SSH key](https://github.com/hashicorp/vagrant/tree/main/keys). Also, `miv ssh` can shell into a running VM.
 
-The QEMU VM is set up with [User Networking](https://wiki.qemu.org/Documentation/Networking#User_Networking_.28SLIRP.29), which doesn't interfere with the host's network stack, and the guest SSH port is forwarded to a random port on _localhost_.
+The QEMU VM is set up with [User Networking](https://wiki.qemu.org/Documentation/Networking#User_Networking_.28SLIRP.29), which doesn't interfere with the host's network stack, and the guest SSH port is forwarded to a random port on _localhost_. You can forward more ports with the `--port` option.
 
 Minivirt manages [images](#images), which are essentially read-only, reusable virtual machine qcow2 disks; and [VMs](#persistent-vms), with their own [copy-on-write](https://en.wikibooks.org/wiki/QEMU/Images#Copy_on_write) disk, which uses the image disk as its backing file. Everything is stored in `~/.cache/minivirt/`.
 

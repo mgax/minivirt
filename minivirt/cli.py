@@ -1,6 +1,7 @@
 import hashlib
 import logging
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -12,7 +13,7 @@ from . import build, qemu, remotes
 from .contrib import githubactions
 from .db import DB, ImageNotFound
 from .exceptions import VmExists, VmIsRunning
-from .vms import VM
+from .vms import PortForward, VM
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +21,16 @@ _db_path = os.environ.get(
     'MINIVIRT_DB_PATH', Path.home() / '.cache' / 'minivirt'
 )
 db = DB(Path(_db_path))
+
+
+def parse_port_args(args):
+    for arg in args:
+        m = re.match(r'(?P<host_port>\d+):(?P<guest_port>\d+)$', arg)
+        if m is None:
+            raise click.ClickException(f'Can not parse port argument {arg!r}')
+        yield PortForward(
+            int(m.group('host_port')), int(m.group('guest_port'))
+        )
 
 
 @click.group()
@@ -56,7 +67,11 @@ def doctor():
 @click.argument('name')
 @click.option('-m', '--memory', default=1024)
 @click.option('--disk', default=None)
+@click.option('--port', multiple=True)
 def create(image, name, **kwargs):
+    if 'port' in kwargs:
+        kwargs['ports'] = list(parse_port_args(kwargs.pop('port')))
+
     try:
         image = db.get_image(image)
     except ImageNotFound:
@@ -120,10 +135,12 @@ def ssh(name, args):
 
 @cli.command()
 @click.option('-m', '--memory', default=1024)
+@click.option('--port', multiple=True)
 @click.option('--wait-for-ssh', default=60)
 @click.argument('image_name')
 @click.argument('args', nargs=-1)
-def run(memory, wait_for_ssh, image_name, args):
+def run(memory, port, wait_for_ssh, image_name, args):
+    ports = list(parse_port_args(port))
     try:
         image = db.get_image(image_name)
     except ImageNotFound:
@@ -131,7 +148,7 @@ def run(memory, wait_for_ssh, image_name, args):
     vm_name = hashlib.sha256(
         f'{image.name}@{time()}'.encode('utf8')
     ).hexdigest()
-    vm = VM.create(db, vm_name, image=image, memory=memory)
+    vm = VM.create(db, vm_name, image=image, memory=memory, ports=ports)
     try:
         with vm.run(wait_for_ssh=wait_for_ssh):
             vm.ssh(*args)

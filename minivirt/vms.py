@@ -43,9 +43,18 @@ class CDROM:
         self.qemu_args = ['-cdrom', self.path]
 
 
+class PortForward:
+    def __init__(self, host_port, guest_port):
+        self.host_port = host_port
+        self.guest_port = guest_port
+
+    def __repr__(self):
+        return f'<PortForward {self.host_port}:{self.guest_port}>'
+
+
 class VM:
     @classmethod
-    def create(cls, db, name, memory, image=None, disk=None):
+    def create(cls, db, name, memory, image=None, disk=None, ports=()):
         vm = cls(db, name)
         if vm.path.exists():
             raise VmExists(name)
@@ -56,6 +65,9 @@ class VM:
 
         if image and image.config.get('disk'):
             vm.create_disk_with_base(image.path / 'disk.qcow2')
+
+        for port_forward in ports:
+            vm.add_port(port_forward)
 
         vm.config.update(
             image=image and image.name,
@@ -112,6 +124,14 @@ class VM:
         )
         self.config.save()
 
+    def add_port(self, port_forward):
+        self.config.setdefault('ports', []).append(
+            {
+                'host_port': port_forward.host_port,
+                'guest_port': port_forward.guest_port,
+            }
+        )
+
     def relative_path(self, path):
         return Path(os.path.relpath(path, self.path))
 
@@ -138,6 +158,11 @@ class VM:
             else:
                 raise RuntimeError('Unknown resource type')
 
+    @property
+    def ports(self):
+        for port_forward in self.config.get('ports', []):
+            yield PortForward(**port_forward)
+
     def connect_qmp(self):
         with tempfile.TemporaryDirectory() as tmp:
             sock_path = Path(tmp) / 'sock'
@@ -155,6 +180,13 @@ class VM:
                 return True
 
         return False
+
+    def _get_netdev_arg(self, ssh_port):
+        hostfwd = ','.join(
+            f'hostfwd=tcp:127.0.0.1:{pf.host_port}-:{pf.guest_port}'
+            for pf in [PortForward(ssh_port, 22), *self.ports]
+        )
+        return f'user,id=user,{hostfwd}'
 
     def start(
         self,
@@ -201,7 +233,7 @@ class VM:
             '-qmp', f'unix:{qmp_path},server,nowait',
             '-m', str(self.config['memory']),
             '-boot', 'menu=on,splash-time=0',
-            '-netdev', f'user,id=user,hostfwd=tcp:127.0.0.1:{ssh_port}-:22',
+            '-netdev', self._get_netdev_arg(ssh_port),
             '-device', 'virtio-net-pci,netdev=user,romfile=',
         ]
 
