@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "minivirt"
-version = "0.1b2"
+version = "0.1"
 description = "Painless VM management from the CLI"
 authors = ["Alex Morega <alex@grep.ro>"]
 readme = "Readme.md"
