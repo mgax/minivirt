@@ -178,7 +178,7 @@ def cloud_init_iso(builder, cloud_config, filename, attach=None):
 
 @build_step
 def run_console(builder, steps):
-    with builder.vm.run():
+    with builder.vm.run(statusline=False):
         builder.console = Console(builder.vm.serial_path)
         for step in steps:
             builder.console_step(step)

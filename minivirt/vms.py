@@ -13,6 +13,7 @@ from textwrap import dedent
 from . import qemu, utils
 from .configs import Config
 from .exceptions import VmExists, VmIsRunning
+from .statusline import StatusLine
 
 VAGRANT_PRIVATE_KEY_PATH = Path(__file__).parent / 'vagrant-private-key'
 
@@ -194,6 +195,7 @@ class VM:
         display=False,
         snapshot=False,
         wait_for_ssh=None,
+        statusline=True,
     ):
         if self.is_running:
             raise VmIsRunning(f'{self} is already running')
@@ -260,8 +262,13 @@ class VM:
             ]
 
             if os.fork():
+                sl = StatusLine(self)
+                if statusline:
+                    sl.start()
+
                 if wait_for_ssh:
                     utils.wait_for_ssh(ssh_port, wait_for_ssh)
+                    sl.stop()
 
                 return
 
@@ -287,6 +294,7 @@ class VM:
         utils.wait_for_ssh(ssh_port, timeout)
 
     def stop(self, wait=10):
+        StatusLine(self).start()
         qmp = self.connect_qmp()
         qmp.poweroff()
         try:
