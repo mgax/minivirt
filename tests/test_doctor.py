@@ -7,4 +7,4 @@ def test_doctor():
     runner = CliRunner()
     res = runner.invoke(cli, ['doctor'])
     assert res.exit_code == 0
-    assert res.stdout == '🚑👌\n'
+    assert res.stdout == 'All ok\n'

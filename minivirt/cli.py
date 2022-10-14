@@ -59,7 +59,7 @@ def doctor():
 
     assert b'minivirt/cli.py' in subprocess.check_output(['du', __file__])
 
-    print('🚑👌')
+    print('All ok')
 
 
 @cli.command()
@@ -208,7 +208,7 @@ def fsck():
         logger.warning('fsck error: %s', message)
     if result.errors:
         sys.exit(1)
-    print('🩺👌')
+    logger.info('fsck successful')
 
 
 @cli.command()
