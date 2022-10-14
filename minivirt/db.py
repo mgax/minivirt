@@ -14,6 +14,7 @@ from pathlib import Path
 
 from . import vms
 from .cache import Cache
+from .exceptions import ImageNotFound
 from .remotes import Remotes
 
 logger = logging.getLogger(__name__)
@@ -140,10 +141,6 @@ class ImageCreator:
 class FsckResult:
     def __init__(self):
         self.errors = []
-
-
-class ImageNotFound(Exception):
-    pass
 
 
 class DB:
