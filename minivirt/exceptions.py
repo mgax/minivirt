@@ -4,3 +4,7 @@ class VmExists(RuntimeError):
 
 class VmIsRunning(RuntimeError):
     pass
+
+
+class ImageNotFound(Exception):
+    pass

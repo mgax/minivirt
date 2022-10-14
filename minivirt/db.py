@@ -14,6 +14,7 @@ from pathlib import Path
 
 from . import vms
 from .cache import Cache
+from .exceptions import ImageNotFound
 from .remotes import Remotes
 
 logger = logging.getLogger(__name__)
@@ -28,7 +29,7 @@ class Image:
         self.config_path = self.path / 'config.json'
 
     def __repr__(self):
-        return f'<Image {self.name[:8]}>'
+        return f'<Image {self.name[:12]}>'
 
     @cached_property
     def config(self):
@@ -140,10 +141,6 @@ class ImageCreator:
 class FsckResult:
     def __init__(self):
         self.errors = []
-
-
-class ImageNotFound(Exception):
-    pass
 
 
 class DB:

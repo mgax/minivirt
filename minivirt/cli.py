@@ -59,7 +59,7 @@ def doctor():
 
     assert b'minivirt/cli.py' in subprocess.check_output(['du', __file__])
 
-    print('🚑👌')
+    print('All ok')
 
 
 @cli.command()
@@ -174,7 +174,7 @@ def images():
     for image in db.iter_images():
         size = image.get_size()
         print(
-            image.name[:8],
+            image.name[:12],
             size,
             ' '.join(tag.name for tag in image.iter_tags()),
         )
@@ -208,7 +208,7 @@ def fsck():
         logger.warning('fsck error: %s', message)
     if result.errors:
         sys.exit(1)
-    print('🩺👌')
+    logger.info('fsck successful')
 
 
 @cli.command()

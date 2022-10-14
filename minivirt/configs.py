@@ -19,6 +19,7 @@ class Config:
         with self.path.open('w') as f:
             json.dump(self.content, f, indent=2)
 
+        # Invalidate the cached_property `content`
         self.__dict__.pop('content', None)
 
     def __getitem__(self, key):

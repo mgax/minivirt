@@ -114,7 +114,7 @@ class QMP:
         logger.debug('Sending QMP message: %s.', msg)
         return self.sock.sendall(json.dumps(msg).encode('utf8'))
 
-    def recv(self, bufsize=65536):
+    def recv(self):
         msg = json.loads(self.reader.readline())
         logger.debug('Received QMP message: %s.', msg)
         return msg
