@@ -28,7 +28,7 @@ class Image:
         self.config_path = self.path / 'config.json'
 
     def __repr__(self):
-        return f'<Image {self.name[:8]}>'
+        return f'<Image {self.name[:12]}>'
 
     @cached_property
     def config(self):
