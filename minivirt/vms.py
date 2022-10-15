@@ -222,6 +222,7 @@ class VM:
                             Port {ssh_port}
                             User root
                             IdentityFile {ssh_private_key_path}
+                            LogLevel=quiet
                     '''
                 )
             )
