@@ -8,3 +8,7 @@ class VmIsRunning(RuntimeError):
 
 class ImageNotFound(Exception):
     pass
+
+
+class WaitTimeout(RuntimeError):
+    pass

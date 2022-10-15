@@ -3,11 +3,9 @@ import select
 import socket
 from time import sleep, time
 
+from .exceptions import WaitTimeout
+
 logger = logging.getLogger(__name__)
-
-
-class WaitTimeout(RuntimeError):
-    pass
 
 
 def waitfor(condition, help=None, timeout=10, poll_interval=0.1):
