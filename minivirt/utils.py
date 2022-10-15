@@ -1,7 +1,7 @@
 import logging
 import select
 import socket
-from time import sleep, time
+import time
 
 from .exceptions import WaitTimeout
 
@@ -11,14 +11,14 @@ logger = logging.getLogger(__name__)
 def waitfor(condition, help=None, timeout=10, poll_interval=0.1):
     if not help:
         help = (condition.__doc__ or repr(condition)).strip()
-    expires = time() + timeout
-    while time() < expires:
+    expires = time.monotonic() + timeout
+    while time.monotonic() < expires:
         logger.debug('Polling for %s ...', help)
         rv = condition()
         if rv:
             logger.debug('Polling for %s successful: %r.', help, rv)
             return rv
-        sleep(poll_interval)
+        time.sleep(poll_interval)
 
     raise WaitTimeout('Timeout expired')
 
