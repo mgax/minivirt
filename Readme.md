@@ -21,10 +21,13 @@ _Minivirt_ is a lightweight [QEMU][] manager that provides a Docker-like user ex
     pip3 install minivirt
     miv doctor
     ```
-1. Pull an image and start a VM.
+1. Pull an image (or [build one yourself](#building-an-image)).
     ```shell
     miv remote add default https://f003.backblazeb2.com/file/minivirt
     miv pull default alpine-{arch} alpine  # {arch} is automatically replaced with your architecture.
+    ```
+1. Start a VM.
+    ```shell
     miv run alpine
     ```
 
