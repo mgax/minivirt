@@ -12,7 +12,7 @@ import click
 from . import build, qemu, remotes
 from .contrib import githubactions
 from .db import DB, ImageNotFound
-from .exceptions import VmExists, VmIsRunning
+from .exceptions import RemoteNotFound, VmExists, VmIsRunning
 from .vms import PortForward, VM
 
 logger = logging.getLogger(__name__)
@@ -224,20 +224,31 @@ def untag(name):
 
 
 @cli.command()
-@click.argument('remote')
+@click.argument('remote_name')
 @click.argument('ref')
 @click.argument('remote_tag')
-def push(remote, ref, remote_tag):
-    image = db.get_image(ref)
-    db.remotes.get(remote).push(image, remote_tag)
+def push(remote_name, ref, remote_tag):
+    try:
+        image = db.get_image(ref)
+    except ImageNotFound:
+        raise click.ClickException(f'Image {ref!r} not found')
+    try:
+        remote = db.remotes.get(remote_name)
+    except RemoteNotFound:
+        raise click.ClickException(f'Remote {remote_name!r} not found')
+    remote.push(image, remote_tag)
 
 
 @cli.command()
-@click.argument('remote')
+@click.argument('remote_name')
 @click.argument('remote_tag')
 @click.argument('tag')
-def pull(remote, remote_tag, tag):
-    db.remotes.get(remote).pull(remote_tag.format(arch=qemu.arch), tag)
+def pull(remote_name, remote_tag, tag):
+    try:
+        remote = db.remotes.get(remote_name)
+    except RemoteNotFound:
+        raise click.ClickException(f'Remote {remote_name!r} not found')
+    remote.pull(remote_tag.format(arch=qemu.arch), tag)
 
 
 cli.add_command(remotes.cli, name='remote')

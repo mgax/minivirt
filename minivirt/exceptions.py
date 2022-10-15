@@ -12,3 +12,7 @@ class ImageNotFound(Exception):
 
 class WaitTimeout(RuntimeError):
     pass
+
+
+class RemoteNotFound(Exception):
+    pass

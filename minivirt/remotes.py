@@ -10,6 +10,7 @@ import botocore.exceptions
 import click
 
 from .configs import Config
+from .exceptions import RemoteNotFound
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,10 @@ class Remotes:
         self.config.save()
 
     def get(self, name):
-        url = self.config[name]
+        try:
+            url = self.config[name]
+        except KeyError:
+            raise RemoteNotFound
         return Remote(self.db, name, url)
 
 
