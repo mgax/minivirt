@@ -163,7 +163,7 @@ class DB:
         path = self.images_path / name
         if path.is_symlink():
             name = path.resolve().name
-        if not (self.images_path / name).exists():
+        if not (name and (self.images_path / name).exists()):
             raise ImageNotFound
         return Image(self, name)
 

@@ -1,5 +1,8 @@
 import tempfile
 
+import pytest
+
+from minivirt.exceptions import ImageNotFound
 from minivirt.vms import VM
 
 
@@ -68,3 +71,9 @@ def test_checksum(db):
     assert creator.image.name == (
         '8492b89d0572b9dd3ee9597aa308c0887c1d26844dddbdd1c92408307f677887'
     )
+
+
+@pytest.mark.parametrize('image_name', ['', 'nothing', 'a'*64])
+def test_image_not_found(db, image_name):
+    with pytest.raises(ImageNotFound):
+        db.get_image(image_name)
