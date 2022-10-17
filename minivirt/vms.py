@@ -193,7 +193,7 @@ class VM:
         daemon=False,
         display=False,
         snapshot=False,
-        wait_for_ssh=False,
+        wait_for_ssh=None,
     ):
         if self.is_running:
             raise VmIsRunning(f'{self} is already running')
