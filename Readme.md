@@ -56,6 +56,7 @@ The `miv doctor` command runs a checkup to help with troubleshooting. It checks 
 
 * [VMs](docs/VMs.md)
 * [Images](docs/Images.md)
+* [Database](docs/Database.md)
 * [Development](docs/Development.md)
 
 ## Get in touch
