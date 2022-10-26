@@ -176,6 +176,8 @@ class DB:
         return ImageCreator(self).ctx()
 
     def get_tag(self, name):
+        if not name:
+            raise ValueError('Invalid tag name')
         return Tag(self, name)
 
     def vm_path(self, name):

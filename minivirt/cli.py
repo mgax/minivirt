@@ -218,9 +218,19 @@ def prune(dry_run):
 
 
 @cli.command()
-@click.argument('name')
-def untag(name):
-    db.get_tag(name).delete()
+@click.argument('image_name')
+@click.argument('tags', nargs=-1)
+def tag(image_name, tags):
+    image = db.get_image(image_name)
+    for tag in tags:
+        image.tag(tag)
+
+
+@cli.command()
+@click.argument('tags', nargs=-1)
+def untag(tags):
+    for tag in tags:
+        db.get_tag(tag).delete()
 
 
 @cli.command()
