@@ -5,13 +5,13 @@ from pathlib import Path
 
 import pytest
 
-from minivirt.db import DB
+from minivirt.db import DB, get_db_path
 from minivirt.qemu import arch
 from minivirt.vms import VM
 
 logger = logging.getLogger(__name__)
 
-CACHE_PATH = Path.home() / '.cache' / 'minivirt-tests'
+CACHE_PATH = get_db_path('minivirt-tests', env=False)
 DB_PATH = CACHE_PATH / 'db'
 BASE_IMAGE_URL = (
     f'https://f003.backblazeb2.com/file/minivirt/alpine-3.15.4-{arch}.tgz'
