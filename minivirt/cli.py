@@ -174,7 +174,7 @@ def images():
     for image in db.iter_images():
         size = image.get_size()
         print(
-            image.name[:12],
+            image.short_name,
             size,
             ' '.join(tag.name for tag in image.iter_tags()),
         )

@@ -366,4 +366,4 @@ def cli(recipe, tag, verbose):
         image.tag(interpolate(tag))
 
     size = image.get_size()
-    print(image.name[:8], size)  # noqa: T201
+    print(image.short_name, size)  # noqa: T201
