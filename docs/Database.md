@@ -4,7 +4,7 @@ Minivirt stores images and VMs in a database, which is just a bunch of folders a
 
 ## Images
 
-An image is an immutable snapshot of a virtual machine. It typically consists of a qcow2 disk image and a configuration file. It's identified by an `id` which is calculated based on its files using SHA256. The image files reside in a folder named `{db}/images/{id}`.
+An _image_ is an immutable snapshot of a virtual machine. It typically consists of a qcow2 disk image and a configuration file. It's identified by an `id` which is calculated based on its files using SHA256. The image files reside in a folder named `{db}/images/{id}`.
 
 ### Tags
 
@@ -12,7 +12,7 @@ An image may have tags, which are named references to the image. On disk they ar
 
 ## VMs
 
-A VM is an instance of a virtual machine. Each VM has a unique `name` and its files reside in a directory like `{db}/vms/{name}`.
+A _VM_ is an instance of a virtual machine. Each VM has a unique `name` and its files reside in a directory like `{db}/vms/{name}`.
 
 Typically a VM will be derived from an image, which is referenced in `config.json` under the `"image"` key. The VMs's qcow2 disk will have the image's disk as backing file.
 
@@ -27,4 +27,4 @@ The file `{db}/remotes.json` lists the remote repositories that are configured w
 
 ## Cache
 
-When `miv build` needs to download a file, it will save a copy in `{db}/cache`, to speed up future builds.
+When `miv build` needs to download a file, it will save a copy in `{db}/cache`, to speed up future builds. The cache is not cleaned up automatically, but it's always safe to delete any file from it.
