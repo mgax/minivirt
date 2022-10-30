@@ -196,6 +196,7 @@ class VM:
         snapshot=False,
         wait_for_ssh=None,
         statusline=True,
+        usb=(),
     ):
         if self.is_running:
             raise VmIsRunning(f'{self} is already running')
@@ -238,6 +239,7 @@ class VM:
             '-boot', 'menu=on,splash-time=0',
             '-netdev', self._get_netdev_arg(ssh_port),
             '-device', 'virtio-net-pci,netdev=user,romfile=',
+            '-device', 'qemu-xhci',
         ]
 
         if display:
@@ -254,6 +256,13 @@ class VM:
         if snapshot:
             qemu_cmd += [
                 '-snapshot',
+            ]
+
+        for usb_item in usb:
+            vendorid, productid = usb_item.split(':')
+            qemu_cmd += [
+                '-device',
+                f'usb-host,vendorid={vendorid},productid={productid}',
             ]
 
         if daemon:

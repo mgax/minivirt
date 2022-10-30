@@ -74,7 +74,6 @@ def get_display_args():
     return [
         '-device', 'virtio-gpu-pci',
         '-display', display_argument,
-        '-device', 'qemu-xhci',
         '-device', 'usb-kbd',
         '-device', 'usb-tablet',
     ]
