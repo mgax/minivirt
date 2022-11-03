@@ -55,6 +55,10 @@ steps:
           send: "setup-sshd -k {vagrant_pubkey_url} openssh\n"
           wait: "\r\nalpine:~# "
 
+        - name: motd
+          send: "echo -n > /etc/motd\n"
+          wait: "\r\nalpine:~# "
+
         - name: grub timeout
           if_arch: 'aarch64'
           send: "echo 'GRUB_TIMEOUT=0' >> /etc/default/grub && grub-mkconfig -o /boot/grub/grub.cfg\n"

@@ -67,6 +67,10 @@ steps:
           send: "apk add curl && mkdir ~/.ssh && chmod 700 ~/.ssh && curl {vagrant_pubkey_url} > ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys\n"
           wait: "\r\nalpine:~# "
 
+        - name: motd
+          send: "echo -n > /etc/motd\n"
+          wait: "\r\nalpine:~# "
+
         - name: grub timeout
           if_arch: 'aarch64'
           send: "echo 'GRUB_TIMEOUT=0' >> /etc/default/grub && grub-mkconfig -o /boot/grub/grub.cfg\n"
