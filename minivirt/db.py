@@ -28,8 +28,12 @@ class Image:
         self.path = db.image_path(name)
         self.config_path = self.path / 'config.json'
 
+    @property
+    def short_name(self):
+        return self.name[:12]
+
     def __repr__(self):
-        return f'<Image {self.name[:12]}>'
+        return f'<Image {self.short_name}>'
 
     @cached_property
     def config(self):
@@ -176,6 +180,8 @@ class DB:
         return ImageCreator(self).ctx()
 
     def get_tag(self, name):
+        if not name:
+            raise ValueError('Invalid tag name')
         return Tag(self, name)
 
     def vm_path(self, name):

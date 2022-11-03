@@ -178,7 +178,7 @@ def cloud_init_iso(builder, cloud_config, filename, attach=None):
 
 @build_step
 def run_console(builder, steps):
-    with builder.vm.run():
+    with builder.vm.run(statusline=False):
         builder.console = Console(builder.vm.serial_path)
         for step in steps:
             builder.console_step(step)
@@ -352,7 +352,7 @@ def build(db, recipe_path, verbose=False):
 @click.argument(
     'recipe', type=click.Path(exists=True, dir_okay=False, path_type=Path)
 )
-@click.option('--tag')
+@click.option('--tag', multiple=True)
 @click.option('-v', '--verbose', is_flag=True)
 def cli(recipe, tag, verbose):
     from minivirt.cli import db
@@ -362,8 +362,8 @@ def cli(recipe, tag, verbose):
     except ImageTestError:
         raise click.ClickException('Build test failed')
 
-    if tag:
-        image.tag(interpolate(tag))
+    for tag_name in tag:
+        image.tag(interpolate(tag_name))
 
     size = image.get_size()
-    print(image.name[:8], size)  # noqa: T201
+    print(image.short_name, size)  # noqa: T201
