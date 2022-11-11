@@ -1,6 +1,6 @@
 # Minivirt database
 
-Minivirt stores images and VMs in a database, which is just a bunch of folders and files. By default it's located at `~/.cache/minivirt`, but it can be changed by setting `$MINIVIRT_DB_PATH`.
+Minivirt stores images and VMs in a database, which is just a bunch of folders and files. By default it's located at `$XDG_STATE_HOME/minivirt/` (`~/.local/state/minivirt/`), but it can be changed by setting `$MINIVIRT_DB_PATH`.
 
 ## Images
 

@@ -1,26 +1,22 @@
 import hashlib
 import logging
-import os
 import re
 import subprocess
 import sys
-from pathlib import Path
 from time import time
 
 import click
 
 from . import build, qemu, remotes
 from .contrib import githubactions
-from .db import DB, ImageNotFound
+from .db import DB, get_db_path, ImageNotFound
 from .exceptions import RemoteNotFound, VmExists, VmIsRunning
 from .vms import PortForward, VM
 
 logger = logging.getLogger(__name__)
 
-_db_path = os.environ.get(
-    'MINIVIRT_DB_PATH', Path.home() / '.cache' / 'minivirt'
-)
-db = DB(Path(_db_path))
+
+db = DB(get_db_path())
 
 
 def parse_port_args(args):

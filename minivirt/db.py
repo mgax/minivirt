@@ -258,3 +258,16 @@ class DB:
                 logger.info('Removing %s', image.name)
                 if not dry_run:
                     image.delete()
+
+
+def get_db_path(dirname='minivirt', env=True):
+    if env:
+        env_value = os.environ.get('MINIVIRT_DB_PATH')
+        if env_value:
+            return Path(env_value)
+
+    state_path = os.environ.get('XDG_STATE_HOME')
+    if not state_path:
+        state_path = Path.home() / '.local' / 'state'
+
+    return Path(state_path) / dirname

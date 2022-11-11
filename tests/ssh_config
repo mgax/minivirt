@@ -1,2 +1,2 @@
 Host *.miv
-  Include ~/.cache/minivirt-tests/db/vms/*/ssh-config
+  Include ~/.local/state/minivirt-tests/db/vms/*/ssh-config
