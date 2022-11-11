@@ -85,6 +85,7 @@ def create(image, name, **kwargs):
 @click.option('--display', is_flag=True)
 @click.option('--snapshot', is_flag=True)
 @click.option('--wait-for-ssh', type=int, default=None)
+@click.option('--usb', multiple=True)
 def start(name, **kwargs):
     vm = db.get_vm(name)
     try:
