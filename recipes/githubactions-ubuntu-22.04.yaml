@@ -10,7 +10,7 @@ steps:
 
         - run: |
             mkdir actions-runner && cd actions-runner
-            curl -Ls https://github.com/actions/runner/releases/download/v2.297.0/actions-runner-linux-x64-2.297.0.tar.gz | tar xz
+            curl -Ls https://github.com/actions/runner/releases/download/v2.299.1/actions-runner-linux-x64-2.299.1.tar.gz | tar xz
 
         - run: poweroff
           continue_on_error: true
